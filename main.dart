@@ -296,3 +296,72 @@ class _WritingModuleScreenState extends State<WritingModuleScreen> {
     );
   }
 }
+// 4. SHALLAGGAA HERREGAAN (MATH MODULE)
+class MathModuleScreen extends StatefulWidget {
+  const MathModuleScreen({super.key});
+
+  @override
+  State<MathModuleScreen> createState() => _MathModuleScreenState();
+}
+
+class _MathModuleScreenState extends State<MathModuleScreen> {
+  final TextEditingController _mathController = TextEditingController();
+  String mathFeedback = "";
+  
+  // Gaaffii herregaa sadarkaa 1-6 (Fkn: Ida'uu fi Hir'isuu)
+  final int num1 = 12;
+  final int num2 = 8;
+  final int correctAnswer = 20;
+
+  void checkMathAnswer() {
+    setState(() {
+      int? userAnswer = int.tryParse(_mathController.text.trim());
+      if (userAnswer == correctAnswer) {
+        mathFeedback = "Herregni sirriidha! Jabaadhu! (Saved)";
+      } else {
+        mathFeedback = "Dogoggora qaba, deebi'ii yaali.";
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Shallaggaa Herregaa Kutaa 1-6')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Herrega Ida\'uu fi Shallaggaa:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.purple[50],
+              child: Text(
+                '$num1 + $num2 = ?',
+                style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.purple),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _mathController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Deebii kee asitti barreessi'),
+            ),
+            const SizedBox(height: 15),
+            ElevatedButton(
+              onPressed: checkMathAnswer,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+              child: const Text('Mirkaneessi fi Kuusi (Check Math)', style: TextStyle(color: Colors.white)),
+            ),
+            const SizedBox(height: 20),
+            if (mathFeedback.isNotEmpty)
+              Text(mathFeedback, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple), textAlign: TextAlign.center),
+          ],
+        ),
+      ),
+    );
+  }
+}
