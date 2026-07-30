@@ -410,3 +410,128 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
     );
   }
 }
+
+// 4. SHALLAGGAA HERREGAAN (MATH MODULE GUUTUU)
+class MathModuleScreen extends StatefulWidget {
+  const MathModuleScreen({super.key});
+
+  @override
+  State<MathModuleScreen> createState() => _MathModuleScreenState();
+}
+
+class _MathModuleScreenState extends State<MathModuleScreen> {
+  final TextEditingController _mathController = TextEditingController();
+  String mathFeedback = "";
+  int currentQuestionIndex = 0;
+
+  // Gaaffilee herregaa sadarkaa 1-6
+  final List<Map<String, dynamic>> mathQuestions = [
+    {
+      "question": "15 + 12 = ?",
+      "options": ["A) 25", "B) 27", "C) 30", "D) 22"],
+      "answer": "27"
+    },
+    {
+      "question": "45 - 20 = ?",
+      "options": ["A) 15", "B) 25", "C) 20", "D) 35"],
+      "answer": "25"
+    },
+    {
+      "question": "6 × 4 = ?",
+      "options": ["A) 24", "B) 18", "C) 28", "D) 20"],
+      "answer": "24"
+    },
+  ];
+
+  void checkMathAnswer() {
+    setState(() {
+      var currentQ = mathQuestions[currentQuestionIndex];
+      String userAnswer = _mathController.text.trim();
+      
+      // Deebiin barataa filannoo wajjin ykn kallattiidhaan lakkoofsaan yoo wal simate
+      if (userAnswer == currentQ['answer'] || userAnswer.toUpperCase() == "B") {
+        mathFeedback = "Herregni sirriidha! Jabaadhu! (Saved)";
+      } else {
+        mathFeedback = "Dogoggora qaba, deebi'ii yaali.";
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var q = mathQuestions[currentQuestionIndex];
+    return Scaffold(
+      appBar: AppBar(title: const Text('Shallaggaa Herregaa Kutaa 1-6')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Gaaffii Herregaa ${currentQuestionIndex + 1}ffaa:', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.purple[50],
+              child: Column(
+                children: [
+                  Text(
+                    q['question'],
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.purple),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    q['options'].join('   '),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _mathController,
+              decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Deebii kee asitti barreessi (Fkn: 27)'),
+            ),
+            const SizedBox(height: 15),
+            ElevatedButton(
+              onPressed: checkMathAnswer,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+              child: const Text('Mirkaneessi fi Kuusi (Check Math)', style: TextStyle(color: Colors.white)),
+            ),
+            const SizedBox(height: 20),
+            if (mathFeedback.isNotEmpty)
+              Text(mathFeedback, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple), textAlign: TextAlign.center),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (currentQuestionIndex > 0)
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        currentQuestionIndex--;
+                        mathFeedback = "";
+                        _mathController.clear();
+                      });
+                    },
+                    child: const Text('Duubatti'),
+                  ),
+                if (currentQuestionIndex < mathQuestions.length - 1)
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        currentQuestionIndex++;
+                        mathFeedback = "";
+                        _mathController.clear();
+                      });
+                    },
+                    child: const Text('Fuuldharatti'),
+                  ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
