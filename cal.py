@@ -2,7 +2,7 @@ import streamlit as st
 
 # PAGE CONFIGURATION
 st.set_page_config(
-    page_title="Hiika Way (HW) App", page_icon="📚", layout="centered"
+    page_title="Hiika Way (HW) App", page_icon="📖", layout="centered"
 )
 
 # CUSTOM STYLING (Background, Border, and Cover Page UI Enhancements)
@@ -75,9 +75,9 @@ if "current_student" not in st.session_state:
 if "current_grade" not in st.session_state:
   st.session_state.current_grade = "Kutaa 1"
 
-# Track attempt counts per question (max 3 attempts, 3rd attempt gets saved/finalized)
+# Track attempt counts per question (max 3 attempts, 3rd attempt saves/locks)
 if "attempts" not in st.session_state:
-  st.session_state.attempts = {}  # {(subject, index): count}
+  st.session_state.attempts = {}
 
 
 # ==========================================
@@ -112,7 +112,7 @@ def role_selection_screen():
 
   with col2:
     if st.button(
-        "👨‍🏫 Barsiisaa (Teacher Report)",
+        "📚 Kutaa Barsiisaa (Teacher Report)",
         help="Gabaasa Excel ilaaluuf",
     ):
       st.session_state.current_page = "teacher_dashboard"
@@ -200,13 +200,12 @@ def home_screen():
 
 
 # ==========================================
-# 4. AFAAN OROMOO MODULE (Grades 1-6 with Reading & 3 Attempts)
+# 4. AFAAN OROMOO MODULE (Grades 1-6)
 # ==========================================
 def afaan_oromoo_screen():
   grade = st.session_state.current_grade
   st.subheader(f"Afaan Oromoo - {grade} ({st.session_state.current_student})")
 
-  # Questions database mapped per grade, including Reading texts in Afaan Oromoo
   ao_db = {
       "Kutaa 1": [
           {
@@ -345,9 +344,7 @@ def afaan_oromoo_screen():
                   "Hojjiin gamtaa milkaa'ina fida. Namoonni waliin hojjetan"
                   " rakkoo salphaatti injifatu."
               ),
-              "question": (
-                  "Gaaffii Dubbisaa: Hojjiin gamtaa maal fida?"
-              ),
+              "question": "Gaaffii Dubbisaa: Hojjiin gamtaa maal fida?",
               "expected": ["milkaa'ina", "milkaa ina", "injifannoo"],
           },
           {
@@ -379,7 +376,6 @@ def afaan_oromoo_screen():
   c1.markdown(f"**Gaaffii {idx + 1} / {len(questions)} : {q['title']}**")
   c2.markdown(f"**Qabxii: {st.session_state.ao_score}**")
 
-  # Display Reading material if available
   if q["type"] == "reading" and "text" in q:
     st.markdown(
         f"""
@@ -396,7 +392,6 @@ def afaan_oromoo_screen():
     for opt in q["options"]:
       st.write(opt)
 
-  # 3 attempts tracking logic
   attempt_key = ("afaan_oromoo", grade, idx)
   if attempt_key not in st.session_state.attempts:
     st.session_state.attempts[attempt_key] = 0
@@ -426,10 +421,8 @@ def afaan_oromoo_screen():
 
       if is_correct:
         st.session_state.ao_score += 10
-        st.success("🎉 Galatoomi! Deebiin kee sirriidha!")
-        st.session_state.attempts[attempt_key] = (
-            3  # Lock attempts if correct
-        )
+        st.success("🎉 Sirriitti deebiste, Foyyee qabda, Si hafa!")
+        st.session_state.attempts[attempt_key] = 3
       else:
         rem = 3 - st.session_state.attempts[attempt_key]
         if rem > 0:
@@ -443,20 +436,17 @@ def afaan_oromoo_screen():
               " qabxii carraa kanaaf)."
           )
     else:
-      st.info(
-          "Barataan carraa 3 guutee xumureera. Gara gaaffii itti aanuutti"
-          " darbi."
-      )
+      st.info("Barataan carraa 3 guutee xumureera.")
 
   st.markdown("---")
   b1, b2 = st.columns(2)
   with b1:
-    if idx > 0 and st.button("Duubatti"):
+    if idx > 0 and st.button("⬅️ Duubatti (Previous)"):
       st.session_state.ao_index -= 1
       st.rerun()
   with b2:
     if idx < len(questions) - 1:
-      if st.button("Fuuldharatti"):
+      if st.button("Fuuldharatti (Next) ➡️"):
         st.session_state.ao_index += 1
         st.rerun()
     else:
@@ -478,7 +468,7 @@ def afaan_oromoo_screen():
 
 
 # ==========================================
-# 5. MATH MODULE (Grades 1-6 with 3 Attempts)
+# 5. MATH MODULE (Grades 1-6)
 # ==========================================
 def math_screen():
   grade = st.session_state.current_grade
@@ -601,7 +591,7 @@ def math_screen():
 
       if is_correct:
         st.session_state.m_score += 10
-        st.success("🎉 Jabaadhu! Deebbiin sirriidha!")
+        st.success("🎉 Sirriitti deebiste, Foyyee qabda, Si hafa!")
         st.session_state.attempts[attempt_key] = 3
       else:
         rem = 3 - st.session_state.attempts[attempt_key]
@@ -618,20 +608,26 @@ def math_screen():
       st.info("Barataan carraa 3 guutee xumureera.")
 
   st.markdown("---")
-  if idx < len(questions) - 1:
-    if st.button("Fuuldharatti"):
-      st.session_state.m_index += 1
+  b1, b2 = st.columns(2)
+  with b1:
+    if idx > 0 and st.button("⬅️ Duubatti (Previous)"):
+      st.session_state.m_index -= 1
       st.rerun()
-  else:
-    if st.button("Xumuruu & Deebi'i"):
-      st.session_state.global_students[st.session_state.current_student][
-          "math"
-      ] = st.session_state.m_score
-      st.success(f"Galatoomi! Qabxii Herregaa waliigalaa: {st.session_state.m_score}")
-      st.session_state.m_index = 0
-      st.session_state.m_score = 0
-      st.session_state.current_page = "home"
-      st.rerun()
+  with b2:
+    if idx < len(questions) - 1:
+      if st.button("Fuuldharatti (Next) ➡️"):
+        st.session_state.m_index += 1
+        st.rerun()
+    else:
+      if st.button("Xumuruu & Deebi'i"):
+        st.session_state.global_students[st.session_state.current_student][
+            "math"
+        ] = st.session_state.m_score
+        st.success(f"Galatoomi! Qabxii Herregaa waliigalaa: {st.session_state.m_score}")
+        st.session_state.m_index = 0
+        st.session_state.m_score = 0
+        st.session_state.current_page = "home"
+        st.rerun()
 
   if st.button("🏠 Gara Manayeessaa (Home)"):
     st.session_state.m_index = 0
@@ -641,7 +637,7 @@ def math_screen():
 
 
 # ==========================================
-# 6. ENGLISH MODULE (Grades 1-6 with Reading & 3 Attempts)
+# 6. ENGLISH MODULE (Grades 1-6)
 # ==========================================
 def english_screen():
   grade = st.session_state.current_grade
@@ -835,7 +831,7 @@ def english_screen():
 
       if is_correct:
         st.session_state.e_score += 10
-        st.success("🎉 Correct! Excellent job!")
+        st.success("🎉 Sirriitti deebiste, Foyyee qabda, Si hafa!")
         st.session_state.attempts[attempt_key] = 3
       else:
         rem = 3 - st.session_state.attempts[attempt_key]
@@ -854,22 +850,28 @@ def english_screen():
       st.info("Maximum attempts completed for this question.")
 
   st.markdown("---")
-  if idx < len(questions) - 1:
-    if st.button("Next"):
-      st.session_state.e_index += 1
+  b1, b2 = st.columns(2)
+  with b1:
+    if idx > 0 and st.button("⬅️ Duubatti (Previous)"):
+      st.session_state.e_index -= 1
       st.rerun()
-  else:
-    if st.button("Finish & Return"):
-      st.session_state.global_students[st.session_state.current_student][
-          "english"
-      ] = st.session_state.e_score
-      st.success(
-          f"Well done! Total English Score: {st.session_state.e_score}"
-      )
-      st.session_state.e_index = 0
-      st.session_state.e_score = 0
-      st.session_state.current_page = "home"
-      st.rerun()
+  with b2:
+    if idx < len(questions) - 1:
+      if st.button("Fuuldharatti (Next) ➡️"):
+        st.session_state.e_index += 1
+        st.rerun()
+    else:
+      if st.button("Finish & Return"):
+        st.session_state.global_students[st.session_state.current_student][
+            "english"
+        ] = st.session_state.e_score
+        st.success(
+            f"Well done! Total English Score: {st.session_state.e_score}"
+        )
+        st.session_state.e_index = 0
+        st.session_state.e_score = 0
+        st.session_state.current_page = "home"
+        st.rerun()
 
   if st.button("🏠 Home"):
     st.session_state.e_index = 0
@@ -879,13 +881,13 @@ def english_screen():
 
 
 # ==========================================
-# 7. TEACHER DASHBOARD (EXCEL REPORT)
+# 7. TEACHER DASHBOARD (EXCEL REPORT WITH PERCENTAGE CONVERSION)
 # ==========================================
 def teacher_dashboard_screen():
-  st.subheader("Gabaasa Barsiisaa (Excel Report - Kutaa 1 hanga 6)")
+  st.subheader("Gabaasa Barsiisaa - Kutaa Barsiisaa (Excel Report)")
   st.markdown(
       "**Gosa Barnoota Sadii (Afaan Oromoo, Herrega, Ingliffaa) Qabxii"
-      " Barattootaa fi Kutaa Isaanii**"
+      " Barattootaa, Waliigala fi Parsantii (%)**"
   )
 
   students = st.session_state.global_students
@@ -897,18 +899,24 @@ def teacher_dashboard_screen():
         " dhiyaata."
     )
   else:
-    csv_data = "Maqaa Barataa,Kutaa,Afaan Oromoo,Herrega,Ingliffaa,Waliigala\n"
+    # Maximum possible score per student is 60 points total (2 questions per subject x 3 subjects = 6 questions * 10 pts = 60 pts max)
+    max_score = 60
+
+    csv_data = (
+        "Maqaa Barataa,Kutaa,Afaan Oromoo,Herrega,Ingliffaa,Waliigala,Parsantii"
+        " (%)\n"
+    )
     for name, data in students.items():
       total = data["afaanOromoo"] + data["math"] + data["english"]
-      csv_data += (
-          f"{name},{data['grade']},{data['afaanOromoo']},{data['math']},{data['english']},{total}\n"
-      )
+      percentage = (total / max_score) * 100 if max_score > 0 else 0
+      csv_data += f"{name},{data['grade']},{data['afaanOromoo']},{data['math']},{data['english']},{total},{percentage:.1f}%\n"
+
       st.markdown(
           f"""
             <div class="card-box">
                 <b>👤 {name} ({data['grade']})</b><br>
                 Afaan Oromoo: {data['afaanOromoo']} | Herrega: {data['math']} | Ingliffaa: {data['english']}<br>
-                <b>Waliigala: {total}</b>
+                <b>Waliigala: {total} / {max_score} | Parsantii: {percentage:.1f}%</b>
             </div>
         """,
           unsafe_allow_html=True,
