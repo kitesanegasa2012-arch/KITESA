@@ -98,7 +98,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// 2. DUBBISUU FI DHAGGEEFFACHUU (READING & AUDIO MODULE)
+// DUBBISUU FI FAKKII / SAGALEE SALPHAA (READING MODULE WITH IMAGES & AUDIO)
 class ReadingModuleScreen extends StatefulWidget {
   const ReadingModuleScreen({super.key});
 
@@ -109,38 +109,29 @@ class ReadingModuleScreen extends StatefulWidget {
 class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
   int currentIndex = 0;
   
-  // Sample data: Qubee, Jecha, Hima fi Keeyyata (Afaan Oromoo & English)
+  // Qubee, Fakkii fi Sagalee Qabiyyee Salphaa
   final List<Map<String, String>> lessons = [
     {
-      "type": "Qubee / Letter",
-      "or": "A - Afaan",
-      "en": "A - Apple",
-      "audio": "a_sound.mp3", // Sample online audio or local asset
+      "title": "Qubee A",
+      "text": "A - Afaan Oromoo",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.svg/1200px-Red_Apple.svg.png",
+      "sound": "Qubee A sirriitti dubbifameera."
     },
     {
-      "type": "Jecha / Word",
-      "or": "Bishaan (Water)",
-      "en": "Water / Read",
-      "audio": "bishaan.mp3",
-    },
-    {
-      "type": "Hima / Sentence",
-      "or": "Lmoon barataa buusaadha.",
-      "en": "Lemmi is a smart student.",
-      "audio": "hima1.mp3",
-    },
-    {
-      "type": "Keeyyata / Paragraph",
-      "or": "Barattoonni kutaa tokkoo dubbisuu fi barreessuu barachaa jiru. Kunis guddina hawaasaatiif murteessaadha.",
-      "en": "Grade one students are learning to read and write. This is crucial for community development.",
-      "audio": "keeyyata1.mp3",
+      "title": "Jecha Bishaan",
+      "text": "Bishaan - Water",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Blue_Water_Drop.svg/1024px-Blue_Water_Drop.svg.png",
+      "sound": "Jechi Bishaan jedhu dhaga'amaa jira."
     },
   ];
 
-  void playAudioSimulation(String audioName) {
-    // Online sample audio trigger simulation
+  void playSound(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Sagaleen taphachaa jira: $audioName (Online sample loaded)')),
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 1),
+        backgroundColor: Colors.orange[800],
+      ),
     );
   }
 
@@ -148,66 +139,43 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
   Widget build(BuildContext context) {
     var item = lessons[currentIndex];
     return Scaffold(
-      appBar: AppBar(title: const Text('Dubbisuu fi Dhaggeeffachuu')),
+      appBar: AppBar(title: const Text('Dubbisuu, Fakkii & Sagalee')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            LinearProgressIndicator(value: (currentIndex + 1) / lessons.length),
+            Text(item['title']!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
             const SizedBox(height: 20),
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
-                (item['type']!.contains('Qubee'))
-                    ? Column(
-                        children: [
-                          // Fakkii fakkeenyaa (Sample Image from Network)
-                          Image.network(
-                            'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.svg/1200px-Red_Apple.svg.png',
-                            height: 120,
-                          ),
-                          const SizedBox(height: 10),
-                          Text(item['type']!, style: const TextStyle(color: Colors.grey)),
-                          const SizedBox(height: 10),
-                          Text(item['or']!, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                          Text(item['en']!, style: const TextStyle(fontSize: 20, fontStyle: FontStyle.italic, color: Colors.blue)),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          Text(item['type']!, style: const TextStyle(color: Colors.grey, fontSize: 16)),
-                          const SizedBox(height: 20),
-                          Text(item['or']!, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                          const SizedBox(height: 10),
-                          Text(item['en']!, style: const TextStyle(fontSize: 18, color: Colors.blue[700]), textAlign: TextAlign.center),
-                        ],
-                      ),
+                child: Column(
+                  children: [
+                    // Fakkii Asitti Mul'ata
+                    Image.network(
+                      item['image']!,
+                      height: 120,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      item['text']!,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            // Sagalee Dhaggeeffachuu fi Akkeessuu (Audio Play & Record Simulation)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => playAudioSimulation(item['audio']!),
-                  icon: const Icon(Icons.volume_up),
-                  label: const Text('Dhaggeeffadhu'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Sagaleen kee waraabameera! Tooftaan akkeessuu sirriidha.')),
-                    );
-                  },
-                  icon: const Icon(Icons.mic),
-                  label: const Text('Akkeessi (Rec)'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                ),
-              ],
+            // Sagalee Dhaggeeffachuu Button
+            ElevatedButton.icon(
+              onPressed: () => playSound(item['sound']!),
+              icon: const Icon(Icons.volume_up),
+              label: const Text('Sagalee Dhaggeeffadhu (Listen Audio)'),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, padding: const EdgeInsets.all(12)),
             ),
             const Spacer(),
             Row(
