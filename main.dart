@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kutaa 1-6 Barumsa Afaanii (L1 & L2)'),
+        title: const Text('Kutaa 1-6 Barumsa Afaanii fi Herregaa'),
         backgroundColor: Colors.green[800],
         centerTitle: true,
       ),
@@ -45,17 +45,39 @@ class HomeScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            _menuCard(context, '📖 Dubbisuu & Dhaggeeffachuu (Reading & Phonics)', Colors.orange, const ReadingModuleScreen()),
+            // 1. Dubbisuu
+            _menuCard(context, '📖 Dubbisuu & Dhaggeeffachuu (Reading)', Colors.orange, const ReadingModuleScreen()),
             const SizedBox(height: 15),
-            _menuCard(context, '✍️ Barreessuu & Akkeessuu (Writing & Tracing)', Colors.blue, const WritingModuleScreen()),
+            // 2. Barreessuu
+            _menuCard(context, '✍️ Barreessuu & Akkeessuu (Writing)', Colors.blue, const WritingModuleScreen()),
             const SizedBox(height: 15),
-            _menuCard(context, '🔢 Shallaggaa Herregaa (Coming Next)', Colors.grey, null),
+            // 3. Herrega (Bakki kunuu asitti sirriitti qabameera)
+            _menuCard(context, '🔢 Shallaggaa Herregaa (Maths Module)', Colors.purple, const MathModuleScreen()),
           ],
         ),
       ),
     );
   }
 
+  Widget _menuCard(BuildContext context, String title, Color color, Widget? screen) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: color,
+      child: InkWell(
+        onTap: screen != null ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => screen)) : null,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
   Widget _menuCard(BuildContext context, String title, Color color, Widget? screen) {
     return Card(
       elevation: 4,
