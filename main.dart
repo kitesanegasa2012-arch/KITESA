@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const OromiaLearningApp());
+  runApp(const HiikaWayApp());
 }
 
-class OromiaLearningApp extends StatelessWidget {
-  const OromiaLearningApp({super.key});
+class HiikaWayApp extends StatelessWidget {
+  const HiikaWayApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Barumsa Kutaa 1-6 Oromia',
+      title: 'Hiika way (HW)',
       theme: ThemeData(
         primarySwatch: Colors.green,
         scaffoldBackgroundColor: const Color(0xFFF7F9FC),
@@ -21,7 +21,7 @@ class OromiaLearningApp extends StatelessWidget {
   }
 }
 
-// 0. MAQAA BARATAA GALCHUU (NAME INPUT SCREEN)
+// 0. MAQAA BARATAA GALCHUU (NAME INPUT SCREEN & CLASS LIST - MAX 80)
 class NameInputScreen extends StatefulWidget {
   const NameInputScreen({super.key});
 
@@ -31,59 +31,123 @@ class NameInputScreen extends StatefulWidget {
 
 class _NameInputScreenState extends State<NameInputScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
+  
+  // Barattoota daree keessatti hanga 80 galmaa'an qabachuuf
+  final List<Map<String, String>> registeredStudents = [];
 
-  void proceedToHome() {
-    String studentName = _nameController.text.trim();
-    if (studentName.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => HomeScreen(studentName: studentName)),
-      );
-    } else {
+  void addStudent() {
+    String name = _nameController.text.trim();
+    String id = _idController.text.trim();
+
+    if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mee dura maqaa kee barreessi!')),
+        const SnackBar(content: Text('Mee maqaa barataa barreessi!')),
       );
+      return;
     }
+
+    if (registeredStudents.length >= 80) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Daree tokko keessatti barataan 80 guutameera!')),
+      );
+      return;
+    }
+
+    setState(() {
+      registeredStudents.add({
+        'id': id.isEmpty ? '${registeredStudents.length + 1}' : id,
+        'name': name,
+      });
+      _nameController.clear();
+      _idController.clear();
+    });
+  }
+
+  void proceedToHome(Map<String, String> student) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => HomeScreen(studentName: student['name']!)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Galmee Maqaa Barataa'),
+        title: const Text('Hiika way (HW) - Galmee Daree (Hanga 80)'),
         backgroundColor: Colors.green[800],
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.school, size: 80, color: Colors.green),
-            const SizedBox(height: 20),
             const Text(
-              'Baga nagaan dhuftan! Maqaa kee asitti barreessi:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              'Galmee Barattoota Daree (Max 80)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Maqaa Kee (Enter Name)',
-                prefixIcon: Icon(Icons.person),
-              ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Maqaa Barataa',
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 1,
+                  child: TextField(
+                    controller: _idController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'ID (Lakk)',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: addStudent,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[800], padding: const EdgeInsets.all(16)),
+                  child: const Text('Galchi', style: TextStyle(color: Colors.white)),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: proceedToHome,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[800],
-                padding: const EdgeInsets.all(14),
-              ),
-              child: const Text('Gara Appiitti Darbi', style: TextStyle(fontSize: 16, color: Colors.white)),
+            const SizedBox(height: 10),
+            Text(
+              'Barattoota Galmaa\'an: ${registeredStudents.length} / 80',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const Divider(),
+            Expanded(
+              child: registeredStudents.isEmpty
+                  xml: const Center(child: Text('Ammaaf barataan galmaa\'e hin jiru. Maqaa galchaa!'))
+                  : ListView.builder(
+                      itemCount: registeredStudents.length,
+                      itemBuilder: (context, index) {
+                        var st = registeredStudents[index];
+                        return Card(
+                          child: ListTile(
+                            leading: CircleAvatar(child: Text(st['id']!)),
+                            title: Text(st['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            trailing: ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange[800]),
+                              onPressed: () => proceedToHome(st),
+                              child: const Text('Barachuu Jalqabi', style: TextStyle(color: Colors.white)),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -92,7 +156,7 @@ class _NameInputScreenState extends State<NameInputScreen> {
   }
 }
 
-// 1. HOME SCREEN (MAQAA QABATEE KAN DHUFU)
+// 1. HOME SCREEN (MAQAA BARATAA FILATAMEEN KAN DHUFU)
 class HomeScreen extends StatelessWidget {
   final String studentName;
   const HomeScreen({super.key, required this.studentName});
@@ -101,7 +165,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Baga nagaan dhuftte, $studentName!'),
+        title: Text('Hiika way (HW) - $studentName'),
         backgroundColor: Colors.green[800],
         centerTitle: true,
       ),
@@ -111,7 +175,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Galatoomi, $studentName! Mee damee barachuu barbaaddu filadhu:',
+              'Baga nagaan dhufte, $studentName! Damee barachuu barbaaddu filadhu:',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -261,17 +325,15 @@ class _WritingModuleScreenState extends State<WritingModuleScreen> {
       String userAnswer = _controller.text.trim().toLowerCase();
       if (userAnswer == currentQ['answer']) {
         score += 10;
-        feedbackMessage = "🎉 Jabaadhu ${widget.nameSafe()}! Galchiifteetta, sirriidha!";
+        feedbackMessage = "🎉 Jabaadhu ${widget.studentName}! Galchiifteetta, sirriidha!";
         feedbackColor = Colors.green;
         isAnswered = true;
       } else {
-        feedbackMessage = "❌ ${widget.nameSafe()}, dogoggora qaba! Mee irra deebi'iitii yaali.";
+        feedbackMessage = "❌ ${widget.studentName}, dogoggora qaba! Mee irra deebi'iitii yaali.";
         feedbackColor = Colors.red;
       }
     });
   }
-
-  String nameSafe() => widget.studentName;
 
   void nextQuestion() {
     setState(() {
@@ -390,11 +452,6 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
       "options": ["A) 15", "B) 25", "C) 20", "D) 35"],
       "answer": "25"
     },
-    {
-      "question": "6 × 4 = ?",
-      "options": ["A) 24", "B) 18", "C) 28", "D) 20"],
-      "answer": "24"
-    },
   ];
 
   void checkMathAnswer() {
@@ -402,7 +459,7 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
     setState(() {
       var currentQ = mathQuestions[currentQuestionIndex];
       String userAnswer = _mathController.text.trim();
-      if (userAnswer == currentQ['answer'] || userAnswer.toUpperCase() == "B" && currentQ['answer'] == "27" || userAnswer.toUpperCase() == "A" && currentQ['answer'] == "24") {
+      if (userAnswer == currentQ['answer'] || userAnswer.toUpperCase() == "B" && currentQ['answer'] == "27") {
         score += 10;
         mathFeedback = "🎉 Jabaadhu ${widget.studentName}! Herregni sirriidha!";
         feedbackColor = Colors.green;
@@ -457,7 +514,7 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
                 children: [
                   Text(q['question'], style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.purple), textAlign: TextAlign.center),
                   const SizedBox(height: 15),
-                  Text(q['options'].join('   '), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text(q['options'].join('    '), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
                 ],
               ),
             ),
