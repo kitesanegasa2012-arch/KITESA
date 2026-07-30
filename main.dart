@@ -16,20 +16,92 @@ class OromiaLearningApp extends StatelessWidget {
         primarySwatch: Colors.green,
         scaffoldBackgroundColor: const Color(0xFFF7F9FC),
       ),
-      home: const HomeScreen(),
+      home: const NameInputScreen(),
     );
   }
 }
 
-// 1. HOME SCREEN (DAMEELEE HUNDA QABATE)
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+// 0. MAQAA BARATAA GALCHUU (NAME INPUT SCREEN)
+class NameInputScreen extends StatefulWidget {
+  const NameInputScreen({super.key});
+
+  @override
+  State<NameInputScreen> createState() => _NameInputScreenState();
+}
+
+class _NameInputScreenState extends State<NameInputScreen> {
+  final TextEditingController _nameController = TextEditingController();
+
+  void proceedToHome() {
+    String studentName = _nameController.text.trim();
+    if (studentName.isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen(studentName: studentName)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mee dura maqaa kee barreessi!')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Barumsa Kutaa 1-6 Afaan Oromoo & Herrega'),
+        title: const Text('Galmee Maqaa Barataa'),
+        backgroundColor: Colors.green[800],
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Icon(Icons.school, size: 80, color: Colors.green),
+            const SizedBox(height: 20),
+            const Text(
+              'Baga nagaan dhuftan! Maqaa kee asitti barreessi:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Maqaa Kee (Enter Name)',
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: proceedToHome,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green[800],
+                padding: const EdgeInsets.all(14),
+              ),
+              child: const Text('Gara Appiitti Darbi', style: TextStyle(fontSize: 16, color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 1. HOME SCREEN (MAQAA QABATEE KAN DHUFU)
+class HomeScreen extends StatelessWidget {
+  final String studentName;
+  const HomeScreen({super.key, required this.studentName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Baga nagaan dhuftte, $studentName!'),
         backgroundColor: Colors.green[800],
         centerTitle: true,
       ),
@@ -38,17 +110,17 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Mee damee barachuu barbaaddu filadhu:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              'Galatoomi, $studentName! Mee damee barachuu barbaaddu filadhu:',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            _menuCard(context, '📖 Dubbisuu & Dhaggeeffachuu (Reading)', Colors.orange, const ReadingModuleScreen()),
+            _menuCard(context, '📖 Dubbisuu & Dhaggeeffachuu (Reading)', Colors.orange, ReadingModuleScreen(studentName: studentName)),
             const SizedBox(height: 15),
-            _menuCard(context, '✍️ Barreessuu & Qormaata (Writing)', Colors.blue, const WritingModuleScreen()),
+            _menuCard(context, '✍️ Barreessuu & Qormaata (Writing)', Colors.blue, WritingModuleScreen(studentName: studentName)),
             const SizedBox(height: 15),
-            _menuCard(context, '🔢 Shallaggaa Herregaa (Maths Module)', Colors.purple, const MathModuleScreen()),
+            _menuCard(context, '🔢 Shallaggaa Herregaa (Maths Module)', Colors.purple, MathModuleScreen(studentName: studentName)),
           ],
         ),
       ),
@@ -77,7 +149,8 @@ class HomeScreen extends StatelessWidget {
 
 // 2. DUBBISUU FI DHAGGEEFFACHUU (READING MODULE)
 class ReadingModuleScreen extends StatefulWidget {
-  const ReadingModuleScreen({super.key});
+  final String studentName;
+  const ReadingModuleScreen({super.key, required this.studentName});
 
   @override
   State<ReadingModuleScreen> createState() => _ReadingModuleScreenState();
@@ -103,7 +176,7 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
 
   void playSound(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 1), backgroundColor: Colors.orange[800]),
+      SnackBar(content: Text('${widget.studentName}, $message'), duration: const Duration(seconds: 1), backgroundColor: Colors.orange[800]),
     );
   }
 
@@ -111,7 +184,7 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
   Widget build(BuildContext context) {
     var item = lessons[currentIndex];
     return Scaffold(
-      appBar: AppBar(title: const Text('Dubbisuu fi Dhaggeeffachuu')),
+      appBar: AppBar(title: Text('Dubbisuu - ${widget.studentName}')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -161,7 +234,8 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
 
 // 3. BARREESSUU FI QORMAATA (WRITING MODULE)
 class WritingModuleScreen extends StatefulWidget {
-  const WritingModuleScreen({super.key});
+  final String studentName;
+  const WritingModuleScreen({super.key, required this.studentName});
 
   @override
   State<WritingModuleScreen> createState() => _WritingModuleScreenState();
@@ -187,15 +261,17 @@ class _WritingModuleScreenState extends State<WritingModuleScreen> {
       String userAnswer = _controller.text.trim().toLowerCase();
       if (userAnswer == currentQ['answer']) {
         score += 10;
-        feedbackMessage = "🎉 Jabaadhu! Galchiifteetta, sirriidha!";
+        feedbackMessage = "🎉 Jabaadhu ${widget.nameSafe()}! Galchiifteetta, sirriidha!";
         feedbackColor = Colors.green;
         isAnswered = true;
       } else {
-        feedbackMessage = "❌ Dogoggora qaba! Mee irra deebi'iitii yaali.";
+        feedbackMessage = "❌ ${widget.nameSafe()}, dogoggora qaba! Mee irra deebi'iitii yaali.";
         feedbackColor = Colors.red;
       }
     });
   }
+
+  String nameSafe() => widget.studentName;
 
   void nextQuestion() {
     setState(() {
@@ -205,7 +281,7 @@ class _WritingModuleScreenState extends State<WritingModuleScreen> {
         _controller.clear();
         isAnswered = false;
       } else {
-        feedbackMessage = "🏆 Gaaffiin dhumateera! Qabxii waliigalaa kee: $score";
+        feedbackMessage = "🏆 Galatoomi ${widget.studentName}! Qabxii waliigalaa kee: $score";
         feedbackColor = Colors.blue;
       }
     });
@@ -215,7 +291,7 @@ class _WritingModuleScreenState extends State<WritingModuleScreen> {
   Widget build(BuildContext context) {
     var q = writingQuestions[currentQuestionIndex];
     return Scaffold(
-      appBar: AppBar(title: const Text('Barreessuu fi Qormaata')),
+      appBar: AppBar(title: Text('Barreessuu - ${widget.studentName}')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -288,7 +364,8 @@ class _WritingModuleScreenState extends State<WritingModuleScreen> {
 
 // 4. SHALLAGGAA HERREGAAN (MATH MODULE)
 class MathModuleScreen extends StatefulWidget {
-  const MathModuleScreen({super.key});
+  final String studentName;
+  const MathModuleScreen({super.key, required this.studentName});
 
   @override
   State<MathModuleScreen> createState() => _MathModuleScreenState();
@@ -327,11 +404,11 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
       String userAnswer = _mathController.text.trim();
       if (userAnswer == currentQ['answer'] || userAnswer.toUpperCase() == "B" && currentQ['answer'] == "27" || userAnswer.toUpperCase() == "A" && currentQ['answer'] == "24") {
         score += 10;
-        mathFeedback = "🎉 Jabaadhu! Herregni sirriidha!";
+        mathFeedback = "🎉 Jabaadhu ${widget.studentName}! Herregni sirriidha!";
         feedbackColor = Colors.green;
         isAnswered = true;
       } else {
-        mathFeedback = "❌ Dogoggora qaba! Mee irra deebi'iitii yaali.";
+        mathFeedback = "❌ ${widget.studentName}, dogoggora qaba! Mee irra deebi'iitii yaali.";
         feedbackColor = Colors.red;
       }
     });
@@ -345,7 +422,7 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
         _mathController.clear();
         isAnswered = false;
       } else {
-        mathFeedback = "🏆 Galatoomi! Qabxii herregaa waliigalaa: $score";
+        mathFeedback = "🏆 Galatoomi ${widget.studentName}! Qabxii herregaa waliigalaa: $score";
         feedbackColor = Colors.blue;
       }
     });
@@ -355,7 +432,7 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
   Widget build(BuildContext context) {
     var q = mathQuestions[currentQuestionIndex];
     return Scaffold(
-      appBar: AppBar(title: const Text('Shallaggaa Herregaa & Qabxii')),
+      appBar: AppBar(title: Text('Herrega - ${widget.studentName}')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
