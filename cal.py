@@ -12,6 +12,46 @@ st.markdown(
     .main {
         background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
     }
+    
+    /* Student Button: Blue */
+    .stButton:nth-of-type(1) > button, div.stButton > button[kind="secondary"] {
+        background-color: #1976D2;
+        color: white;
+        font-weight: bold;
+        border-radius: 12px;
+        padding: 14px 22px;
+        border: 2px solid #0d47a1;
+        width: 100%;
+        box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
+        transition: 0.3s ease;
+    }
+    .stButton:nth-of-type(1) > button:hover {
+        background-color: #0d47a1;
+        color: white;
+        border-color: #002171;
+        box-shadow: 0 6px 15px rgba(13, 71, 161, 0.4);
+    }
+
+    /* Teacher Button: Purple */
+    .teacher-btn button {
+        background-color: #7B1FA2;
+        color: white;
+        font-weight: bold;
+        border-radius: 12px;
+        padding: 14px 22px;
+        border: 2px solid #4a148c;
+        width: 100%;
+        box-shadow: 0 4px 10px rgba(123, 31, 162, 0.3);
+        transition: 0.3s ease;
+    }
+    .teacher-btn button:hover {
+        background-color: #4a148c;
+        color: white;
+        border-color: #311b92;
+        box-shadow: 0 6px 15px rgba(74, 20, 140, 0.4);
+    }
+
+    /* General Button Styling fallback */
     .stButton>button {
         background-color: #2E7D32;
         color: white;
@@ -29,15 +69,16 @@ st.markdown(
         border-color: #0d3b12;
         box-shadow: 0 6px 15px rgba(27, 94, 32, 0.4);
     }
+
     .hero-box {
-        background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #4caf50 100%);
+        background: linear-gradient(135deg, #004d40 0%, #00695c 50%, #00897b 100%);
         padding: 45px 30px;
         border-radius: 20px;
         color: white;
         text-align: center;
         margin-bottom: 30px;
-        box-shadow: 0 10px 25px rgba(46, 125, 50, 0.4);
-        border: 3px solid #a5d6a7;
+        box-shadow: 0 10px 25px rgba(0, 77, 64, 0.4);
+        border: 3px solid #80cbc4;
     }
     .hero-box h1 {
         font-size: 2.2rem;
@@ -48,7 +89,7 @@ st.markdown(
     .hero-box p {
         font-size: 1.15rem;
         line-height: 1.6;
-        color: #f1f8e9;
+        color: #e0f2f1;
     }
     .card-box {
         background-color: white;
@@ -65,9 +106,7 @@ st.markdown(
 
 # Global data store for students, grades (1-6), and scores in Session State
 if "global_students" not in st.session_state:
-  st.session_state.global_students = (
-      {}
-  )  # {name: {grade: X, afaanOromoo: 0, math: 0, english: 0}}
+  st.session_state.global_students = {}
 if "current_page" not in st.session_state:
   st.session_state.current_page = "role_selection"
 if "current_student" not in st.session_state:
@@ -106,24 +145,30 @@ def role_selection_screen():
   )
 
   st.markdown(
-      "<h3 style='text-align: center; color: #1b5e20; margin-top: 20px;"
-      " margin-bottom: 20px;'>Furtuu Filadhu:</h3>",
+      "<h3 style='text-align: center; color: #004d40; margin-top: 20px;"
+      " margin-bottom: 20px;'>🔑 Furtuu Filadhu:</h3>",
       unsafe_allow_html=True,
   )
 
   col1, col2 = st.columns(2)
   with col1:
-    if st.button("👤 Barataa (Student)"):
+    st.markdown("👤 **Barataa (Student)**")
+    if st.button("🔑 Seeni (Barataa)", key="student_btn"):
       st.session_state.current_page = "name_input"
       st.rerun()
 
   with col2:
-    if st.button(
-        "📚 Kutaa Barsiisaa (Teacher Report)",
-        help="Gabaasa Excel ilaaluuf",
-    ):
+    st.markdown("🎓 **Barsiisaa (Teacher)**")
+    # Using an image of a person wearing a graduation gown/robe (academic gown) for the teacher icon
+    st.image(
+        "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=200&q=80",
+        width=80,
+    )
+    st.markdown('<div class="teacher-btn">', unsafe_allow_html=True)
+    if st.button("📊 Gabaasa Barsiisaa", key="teacher_btn"):
       st.session_state.current_page = "teacher_dashboard"
       st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ==========================================
@@ -537,7 +582,10 @@ def math_screen():
               "answer": "1.25",
           },
           {
-              "question": "Pariimerii hirdhicha (rectangle) dheerinni 10cm, bal'inni 5cm hammami?",
+              "question": (
+                  "Pariimerii hirdhicha (rectangle) dheerinni 10cm, bal'inni"
+                  " 5cm hammami?"
+              ),
               "options": ["A) 30cm", "B) 50cm", "C) 15cm", "D) 25cm"],
               "answer": "30cm",
           },
@@ -549,7 +597,9 @@ def math_screen():
               "answer": "24",
           },
           {
-              "question": "Hangi oowwii 20% dabaluun 60 ta'e, jalqaba hammami ture?",
+              "question": (
+                  "Hangi oowwii 20% dabaluun 60 ta'e, jalqaba hammami ture?"
+              ),
               "options": ["A) 50", "B) 48", "C) 55", "D) 45"],
               "answer": "50",
           },
@@ -630,7 +680,9 @@ def math_screen():
         st.session_state.global_students[st.session_state.current_student][
             "math"
         ] = st.session_state.m_score
-        st.success(f"Galatoomi! Qabxii Herregaa waliigalaa: {st.session_state.m_score}")
+        st.success(
+            f"Galatoomi! Qabxii Herregaa waliigalaa: {st.session_state.m_score}"
+        )
         st.session_state.m_index = 0
         st.session_state.m_score = 0
         st.session_state.current_page = "home"
@@ -888,10 +940,10 @@ def english_screen():
 
 
 # ==========================================
-# 7. TEACHER DASHBOARD (EXCEL REPORT WITH SUBJECT SUMMARIES & PRINT/DOWNLOAD)
+# 7. TEACHER DASHBOARD (INTERACTIVE TABLE & EXCEL REPORT DOWNLOAD)
 # ==========================================
 def teacher_dashboard_screen():
-  st.subheader("Gabaasa Barsiisaa - Kutaa Barsiisaa (Teacher Report & Summary)")
+  st.subheader("🎓 Gabaasa Barsiisaa - Kutaa Barsiisaa (Teacher Report & Table)")
   st.markdown(
       "**Gosa Barnoota Sadii (Afaan Oromoo, Herrega, Ingliffaa) Qabxii"
       " Barattootaa, Parsantii (%) fi Cuunfaa Gamaaggamaa**"
@@ -906,10 +958,10 @@ def teacher_dashboard_screen():
         " dhiyaata."
     )
   else:
-    # Max score per subject is 20 points (2 questions * 10 points)
     max_subject_score = 20
     max_total_score = 60
 
+    table_data = []
     csv_data = (
         "Maqaa Barataa,Kutaa,Afaan"
         " Oromoo,Herrega,Ingliffaa,Waliigala,Parsantii (%),Cuunfaa"
@@ -923,7 +975,6 @@ def teacher_dashboard_screen():
       total = ao + math + eng
       percentage = (total / max_total_score) * 100
 
-      # Subject-specific assessment summary function based on user rules
       def get_subject_summary(score):
         pct = (score / max_subject_score) * 100
         if pct == 100:
@@ -942,36 +993,31 @@ def teacher_dashboard_screen():
           f" {eng_summary}"
       )
 
+      table_data.append({
+          "Maqaa Barataa": name,
+          "Kutaa": data["grade"],
+          "Afaan Oromoo": f"{ao}/20",
+          "Herrega": f"{math}/20",
+          "Ingliffaa": f"{eng}/20",
+          "Waliigala": f"{total}/60",
+          "Parsantii (%)": f"{percentage:.1f}%",
+          "Cuunfaa Gabaasa": summary_text,
+      })
+
       csv_data += (
           f"{name},{data['grade']},{ao},{math},{eng},{total},{percentage:.1f}%,\\\"{summary_text}\\\"\n"
       )
 
-      st.markdown(
-          f"""
-            <div class="card-box">
-                <b>👤 {name} ({data['grade']})</b><br>
-                📖 Afaan Oromoo: {ao}/20 ({ao_summary})<br>
-                🔢 Herrega: {math}/20 ({math_summary})<br>
-                🔤 Ingliffaa: {eng}/20 ({eng_summary})<br>
-                <b>Waliigala: {total} / {max_total_score} | Parsantii: {percentage:.1f}%</b>
-            </div>
-        """,
-          unsafe_allow_html=True,
-      )
-
-    st.text_area(
-        "Gabaasa Excel (CSV Format - Copy or Save as .csv)",
-        csv_data,
-        height=180,
-    )
+    # Display using Streamlit's clean, built-in interactive table component (`st.dataframe` or `st.table`)
+    st.dataframe(table_data, use_container_width=True)
 
     # Download button for CSV report
     st.download_button(
-        label="📥 Download / Print Report (CSV File)",
+        label="📥 Download Excel-Compatible Report (CSV)",
         data=csv_data,
         file_name="HiikaWay_Student_Report.csv",
         mime="text/csv",
-        help="Gabaasa kanafa buufachuun print gochuun ni danda'ama",
+        help="Gabaasa kana Excel irratti banuun print gochuun ni danda'ama",
     )
 
   st.write("")
