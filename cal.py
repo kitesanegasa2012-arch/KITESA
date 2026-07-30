@@ -10,11 +10,11 @@ st.markdown(
     """
     <style>
     .main {
-        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        background: linear-gradient(135deg, #f4fbf7 0%, #e2f2e6 100%);
     }
     
     /* Student Button: Blue */
-    .stButton:nth-of-type(1) > button, div.stButton > button[kind="secondary"] {
+    .student-btn button {
         background-color: #1976D2;
         color: white;
         font-weight: bold;
@@ -25,7 +25,7 @@ st.markdown(
         box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
         transition: 0.3s ease;
     }
-    .stButton:nth-of-type(1) > button:hover {
+    .student-btn button:hover {
         background-color: #0d47a1;
         color: white;
         border-color: #002171;
@@ -120,7 +120,7 @@ if "attempts" not in st.session_state:
 
 
 # ==========================================
-# 1. ROLE SELECTION SCREEN (COVER PAGE WITH BOOK ICON & IMAGE)
+# 1. ROLE SELECTION SCREEN (COVER PAGE)
 # ==========================================
 def role_selection_screen():
   st.markdown(
@@ -137,12 +137,14 @@ def role_selection_screen():
       unsafe_allow_html=True,
   )
 
-  # Displaying a textbook image representing student learning materials
-  st.image(
-      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80",
-      caption="Kitaabota Barattootaa Kutaa 1 - 6",
-      use_container_width=True,
-  )
+  # Centered container with reduced image width for the textbook illustration
+  _, img_col, _ = st.columns([1, 2, 1])
+  with img_col:
+    st.image(
+        "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80",
+        caption="Kitaabota Barattootaa Kutaa 1 - 6",
+        use_container_width=True,
+    )
 
   st.markdown(
       "<h3 style='text-align: center; color: #004d40; margin-top: 20px;"
@@ -152,18 +154,30 @@ def role_selection_screen():
 
   col1, col2 = st.columns(2)
   with col1:
-    st.markdown("👤 **Barataa (Student)**")
+    st.markdown(
+        "<p style='text-align: center; color: #0D47A1; font-weight: bold;"
+        " font-size: 1.1rem;'>👤 Barataa (Student)</p>",
+        unsafe_allow_html=True,
+    )
+    st.markdown('<div class="student-btn">', unsafe_allow_html=True)
     if st.button("🔑 Seeni (Barataa)", key="student_btn"):
       st.session_state.current_page = "name_input"
       st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
   with col2:
-    st.markdown("🎓 **Barsiisaa (Teacher)**")
-    # Using an image of a person wearing a graduation gown/robe (academic gown) for the teacher icon
-    st.image(
-        "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=200&q=80",
-        width=80,
+    st.markdown(
+        "<p style='text-align: center; color: #4A148C; font-weight: bold;"
+        " font-size: 1.1rem;'>🎓 Barsiisaa (Teacher)</p>",
+        unsafe_allow_html=True,
     )
+    # Centering the teacher gown image inside column
+    _, icon_col, _ = st.columns([1, 2, 1])
+    with icon_col:
+      st.image(
+          "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=200&q=80",
+          width=70,
+      )
     st.markdown('<div class="teacher-btn">', unsafe_allow_html=True)
     if st.button("📊 Gabaasa Barsiisaa", key="teacher_btn"):
       st.session_state.current_page = "teacher_dashboard"
@@ -1008,10 +1022,8 @@ def teacher_dashboard_screen():
           f"{name},{data['grade']},{ao},{math},{eng},{total},{percentage:.1f}%,\\\"{summary_text}\\\"\n"
       )
 
-    # Display using Streamlit's clean, built-in interactive table component (`st.dataframe` or `st.table`)
     st.dataframe(table_data, use_container_width=True)
 
-    # Download button for CSV report
     st.download_button(
         label="📥 Download Excel-Compatible Report (CSV)",
         data=csv_data,
