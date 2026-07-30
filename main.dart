@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 void main() {
   runApp(const OromiaLearningApp());
@@ -22,7 +21,7 @@ class OromiaLearningApp extends StatelessWidget {
   }
 }
 
-// 1. HOME SCREEN
+// 1. HOME SCREEN (DAMEELEE HUNDA QABATE)
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -30,7 +29,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kutaa 1-6 Barumsa Afaanii fi Herregaa'),
+        title: const Text('Barumsa Kutaa 1-6 Afaan Oromoo & Herrega'),
         backgroundColor: Colors.green[800],
         centerTitle: true,
       ),
@@ -45,13 +44,10 @@ class HomeScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            // 1. Dubbisuu
             _menuCard(context, '📖 Dubbisuu & Dhaggeeffachuu (Reading)', Colors.orange, const ReadingModuleScreen()),
             const SizedBox(height: 15),
-            // 2. Barreessuu
-            _menuCard(context, '✍️ Barreessuu & Akkeessuu (Writing)', Colors.blue, const WritingModuleScreen()),
+            _menuCard(context, '✍️ Barreessuu & Qormaata (Writing)', Colors.blue, const WritingModuleScreen()),
             const SizedBox(height: 15),
-            // 3. Herrega (Bakki kunuu asitti sirriitti qabameera)
             _menuCard(context, '🔢 Shallaggaa Herregaa (Maths Module)', Colors.purple, const MathModuleScreen()),
           ],
         ),
@@ -59,32 +55,13 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _menuCard(BuildContext context, String title, Color color, Widget? screen) {
+  Widget _menuCard(BuildContext context, String title, Color color, Widget screen) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: color,
       child: InkWell(
-        onTap: screen != null ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => screen)) : null,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-}
-  Widget _menuCard(BuildContext context, String title, Color color, Widget? screen) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: color,
-      child: InkWell(
-        onTap: screen != null ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => screen)) : null,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => screen)),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Text(
@@ -98,7 +75,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// DUBBISUU FI FAKKII / SAGALEE SALPHAA (READING MODULE WITH IMAGES & AUDIO)
+// 2. DUBBISUU FI DHAGGEEFFACHUU (READING MODULE)
 class ReadingModuleScreen extends StatefulWidget {
   const ReadingModuleScreen({super.key});
 
@@ -109,11 +86,10 @@ class ReadingModuleScreen extends StatefulWidget {
 class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
   int currentIndex = 0;
   
-  // Qubee, Fakkii fi Sagalee Qabiyyee Salphaa
   final List<Map<String, String>> lessons = [
     {
       "title": "Qubee A",
-      "text": "A - Afaan Oromoo",
+      "text": "A - Afaan",
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.svg/1200px-Red_Apple.svg.png",
       "sound": "Qubee A sirriitti dubbifameera."
     },
@@ -127,11 +103,7 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
 
   void playSound(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-        backgroundColor: Colors.orange[800],
-      ),
+      SnackBar(content: Text(message), duration: const Duration(seconds: 1), backgroundColor: Colors.orange[800]),
     );
   }
 
@@ -139,14 +111,16 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
   Widget build(BuildContext context) {
     var item = lessons[currentIndex];
     return Scaffold(
-      appBar: AppBar(title: const Text('Dubbisuu, Fakkii & Sagalee')),
+      appBar: AppBar(title: const Text('Dubbisuu fi Dhaggeeffachuu')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(item['title']!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
+            LinearProgressIndicator(value: (currentIndex + 1) / lessons.length),
             const SizedBox(height: 20),
+            Text(item['title']!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
+            const SizedBox(height: 10),
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -154,27 +128,18 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    // Fakkii Asitti Mul'ata
-                    Image.network(
-                      item['image']!,
-                      height: 120,
-                    ),
+                    Image.network(item['image']!, height: 120),
                     const SizedBox(height: 20),
-                    Text(
-                      item['text']!,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
+                    Text(item['text']!, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            // Sagalee Dhaggeeffachuu Button
             ElevatedButton.icon(
               onPressed: () => playSound(item['sound']!),
               icon: const Icon(Icons.volume_up),
-              label: const Text('Sagalee Dhaggeeffadhu (Listen Audio)'),
+              label: const Text('Sagalee Dhaggeeffadhu'),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, padding: const EdgeInsets.all(12)),
             ),
             const Spacer(),
@@ -182,15 +147,9 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 if (currentIndex > 0)
-                  ElevatedButton(
-                    onPressed: () => setState(() => currentIndex--),
-                    child: const Text('Duubatti'),
-                  ),
+                  ElevatedButton(onPressed: () => setState(() => currentIndex--), child: const Text('Duubatti')),
                 if (currentIndex < lessons.length - 1)
-                  ElevatedButton(
-                    onPressed: () => setState(() => currentIndex++),
-                    child: const Text('Fuuldharatti'),
-                  ),
+                  ElevatedButton(onPressed: () => setState(() => currentIndex++), child: const Text('Fuuldharatti')),
               ],
             )
           ],
@@ -200,7 +159,7 @@ class _ReadingModuleScreenState extends State<ReadingModuleScreen> {
   }
 }
 
-// 3. BARREESSUU FI RAGAA QABACHUU (WRITING & EVALUATION MODULE)
+// 3. BARREESSUU FI QORMAATA (WRITING MODULE)
 class WritingModuleScreen extends StatefulWidget {
   const WritingModuleScreen({super.key});
 
@@ -211,171 +170,92 @@ class WritingModuleScreen extends StatefulWidget {
 class _WritingModuleScreenState extends State<WritingModuleScreen> {
   final TextEditingController _controller = TextEditingController();
   String feedbackMessage = "";
-  bool isCorrectSaved = false;
+  Color feedbackColor = Colors.blue;
+  int currentQuestionIndex = 0;
+  int score = 0;
+  bool isAnswered = false;
 
-  // Expected target text for comparison
-  final String targetText = "Bishaan"; 
+  final List<Map<String, dynamic>> writingQuestions = [
+    {"prompt": "Jecha 'Bishaan' jedhu qubee sirriidhaan asitti barreessi:", "answer": "bishaan"},
+    {"prompt": "Jecha 'Afaan' jedhu qubee meeqaani (kamii) eegala? (Fkn: a)", "answer": "a"},
+  ];
 
   void checkUserAnswer() {
+    if (isAnswered) return;
     setState(() {
-      if (_controller.text.trim().toLowerCase() == targetText.toLowerCase()) {
-        feedbackMessage = "Jabaadhu! Galchiifteetta, sirriidha! (Saved to local record)";
-        isCorrectSaved = true;
+      var currentQ = writingQuestions[currentQuestionIndex];
+      String userAnswer = _controller.text.trim().toLowerCase();
+      if (userAnswer == currentQ['answer']) {
+        score += 10;
+        feedbackMessage = "🎉 Jabaadhu! Galchiifteetta, sirriidha!";
+        feedbackColor = Colors.green;
+        isAnswered = true;
       } else {
-        feedbackMessage = "Dogoggora qaba, irra deebi'iitii fooyyessi (Try Again).";
-        isCorrectSaved = false;
+        feedbackMessage = "❌ Dogoggora qaba! Mee irra deebi'iitii yaali.";
+        feedbackColor = Colors.red;
+      }
+    });
+  }
+
+  void nextQuestion() {
+    setState(() {
+      if (currentQuestionIndex < writingQuestions.length - 1) {
+        currentQuestionIndex++;
+        feedbackMessage = "";
+        _controller.clear();
+        isAnswered = false;
+      } else {
+        feedbackMessage = "🏆 Gaaffiin dhumateera! Qabxii waliigalaa kee: $score";
+        feedbackColor = Colors.blue;
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    var q = writingQuestions[currentQuestionIndex];
     return Scaffold(
-      appBar: AppBar(title: const Text('Barreessuu fi Qormaata Salphaa')),
+      appBar: AppBar(title: const Text('Barreessuu fi Qormaata')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Jecha armaan gadii sirriitti barreessi:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Gaaffii: ${currentQuestionIndex + 1} / ${writingQuestions.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: Colors.green[100], borderRadius: BorderRadius.circular(8)),
+                  child: Text('Qabxii: $score', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green[800])),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.all(12),
-              color: Colors.yellow[100],
-              child: Text(
-                'Jecha Baratamuu Qabu: "$targetText"',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.brown),
-                textAlign: TextAlign.center,
-              ),
+              padding: const EdgeInsets.all(16),
+              color: Colors.blue[50],
+              child: Text(q['prompt'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue), textAlign: TextAlign.center),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _controller,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Asitti barreessi (Type here)',
-              ),
+              decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Deebii kee asitti barreessi'),
             ),
             const SizedBox(height: 15),
             ElevatedButton(
               onPressed: checkUserAnswer,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700]),
-              child: const Text('Mirkaneessi fi Kuusi (Check & Save)', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700], padding: const EdgeInsets.all(12)),
+              child: const Text('Mirkaneessi (Check)', style: TextStyle(color: Colors.white, fontSize: 16)),
             ),
             const SizedBox(height: 20),
             if (feedbackMessage.isNotEmpty)
               Container(
                 padding: const EdgeInsets.all(12),
-                color: isCorrectSaved ? Colors.green[150] : Colors.red[150],
-                child: Text(
-                  feedbackMessage,
-                  style: TextStyle(
-                    fontSize: 16, 
-                    fontWeight: FontWeight.bold, 
-                    color: isCorrectSaved ? Colors.green[800] : Colors.red[800]
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                decoration: BoxDecoration(color: feedbackColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                child: Text(feedbackMessage, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: feedbackColor), textAlign: TextAlign.center),
               ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-// 4. SHALLAGGAA HERREGAAN (MATH MODULE GUUTUU)
-class MathModuleScreen extends StatefulWidget {
-  const MathModuleScreen({super.key});
-
-  @override
-  State<MathModuleScreen> createState() => _MathModuleScreenState();
-}
-
-class _MathModuleScreenState extends State<MathModuleScreen> {
-  final TextEditingController _mathController = TextEditingController();
-  String mathFeedback = "";
-  int currentQuestionIndex = 0;
-
-  // Gaaffilee herregaa sadarkaa 1-6
-  final List<Map<String, dynamic>> mathQuestions = [
-    {
-      "question": "15 + 12 = ?",
-      "options": ["A) 25", "B) 27", "C) 30", "D) 22"],
-      "answer": "27"
-    },
-    {
-      "question": "45 - 20 = ?",
-      "options": ["A) 15", "B) 25", "C) 20", "D) 35"],
-      "answer": "25"
-    },
-    {
-      "question": "6 × 4 = ?",
-      "options": ["A) 24", "B) 18", "C) 28", "D) 20"],
-      "answer": "24"
-    },
-  ];
-
-  void checkMathAnswer() {
-    setState(() {
-      var currentQ = mathQuestions[currentQuestionIndex];
-      String userAnswer = _mathController.text.trim();
-      
-      // Deebiin barataa filannoo wajjin ykn kallattiidhaan lakkoofsaan yoo wal simate
-      if (userAnswer == currentQ['answer'] || userAnswer.toUpperCase() == "B") {
-        mathFeedback = "Herregni sirriidha! Jabaadhu! (Saved)";
-      } else {
-        mathFeedback = "Dogoggora qaba, deebi'ii yaali.";
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var q = mathQuestions[currentQuestionIndex];
-    return Scaffold(
-      appBar: AppBar(title: const Text('Shallaggaa Herregaa Kutaa 1-6')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Gaaffii Herregaa ${currentQuestionIndex + 1}ffaa:', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.purple[50],
-              child: Column(
-                children: [
-                  Text(
-                    q['question'],
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.purple),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    q['options'].join('   '),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _mathController,
-              decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Deebii kee asitti barreessi (Fkn: 27)'),
-            ),
-            const SizedBox(height: 15),
-            ElevatedButton(
-              onPressed: checkMathAnswer,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-              child: const Text('Mirkaneessi fi Kuusi (Check Math)', style: TextStyle(color: Colors.white)),
-            ),
-            const SizedBox(height: 20),
-            if (mathFeedback.isNotEmpty)
-              Text(mathFeedback, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple), textAlign: TextAlign.center),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -385,23 +265,18 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
                     onPressed: () {
                       setState(() {
                         currentQuestionIndex--;
-                        mathFeedback = "";
-                        _mathController.clear();
+                        feedbackMessage = "";
+                        _controller.clear();
+                        isAnswered = false;
                       });
                     },
                     child: const Text('Duubatti'),
                   ),
-                if (currentQuestionIndex < mathQuestions.length - 1)
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        currentQuestionIndex++;
-                        mathFeedback = "";
-                        _mathController.clear();
-                      });
-                    },
-                    child: const Text('Fuuldharatti'),
-                  ),
+                ElevatedButton(
+                  onPressed: nextQuestion,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+                  child: Text(currentQuestionIndex < writingQuestions.length - 1 ? 'Fuuldharatti' : 'Xumuruu'),
+                ),
               ],
             )
           ],
@@ -411,7 +286,7 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
   }
 }
 
-// 4. SHALLAGGAA HERREGAAN (MATH MODULE GUUTUU)
+// 4. SHALLAGGAA HERREGAAN (MATH MODULE)
 class MathModuleScreen extends StatefulWidget {
   const MathModuleScreen({super.key});
 
@@ -422,9 +297,11 @@ class MathModuleScreen extends StatefulWidget {
 class _MathModuleScreenState extends State<MathModuleScreen> {
   final TextEditingController _mathController = TextEditingController();
   String mathFeedback = "";
+  Color feedbackColor = Colors.purple;
   int currentQuestionIndex = 0;
+  int score = 0;
+  bool isAnswered = false;
 
-  // Gaaffilee herregaa sadarkaa 1-6
   final List<Map<String, dynamic>> mathQuestions = [
     {
       "question": "15 + 12 = ?",
@@ -444,15 +321,32 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
   ];
 
   void checkMathAnswer() {
+    if (isAnswered) return;
     setState(() {
       var currentQ = mathQuestions[currentQuestionIndex];
       String userAnswer = _mathController.text.trim();
-      
-      // Deebiin barataa filannoo wajjin ykn kallattiidhaan lakkoofsaan yoo wal simate
-      if (userAnswer == currentQ['answer'] || userAnswer.toUpperCase() == "B") {
-        mathFeedback = "Herregni sirriidha! Jabaadhu! (Saved)";
+      if (userAnswer == currentQ['answer'] || userAnswer.toUpperCase() == "B" && currentQ['answer'] == "27" || userAnswer.toUpperCase() == "A" && currentQ['answer'] == "24") {
+        score += 10;
+        mathFeedback = "🎉 Jabaadhu! Herregni sirriidha!";
+        feedbackColor = Colors.green;
+        isAnswered = true;
       } else {
-        mathFeedback = "Dogoggora qaba, deebi'ii yaali.";
+        mathFeedback = "❌ Dogoggora qaba! Mee irra deebi'iitii yaali.";
+        feedbackColor = Colors.red;
+      }
+    });
+  }
+
+  void nextQuestion() {
+    setState(() {
+      if (currentQuestionIndex < mathQuestions.length - 1) {
+        currentQuestionIndex++;
+        mathFeedback = "";
+        _mathController.clear();
+        isAnswered = false;
+      } else {
+        mathFeedback = "🏆 Galatoomi! Qabxii herregaa waliigalaa: $score";
+        feedbackColor = Colors.blue;
       }
     });
   }
@@ -461,29 +355,32 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
   Widget build(BuildContext context) {
     var q = mathQuestions[currentQuestionIndex];
     return Scaffold(
-      appBar: AppBar(title: const Text('Shallaggaa Herregaa Kutaa 1-6')),
+      appBar: AppBar(title: const Text('Shallaggaa Herregaa & Qabxii')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Gaaffii Herregaa ${currentQuestionIndex + 1}ffaa:', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Gaaffii: ${currentQuestionIndex + 1} / ${mathQuestions.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: Colors.purple[100], borderRadius: BorderRadius.circular(8)),
+                  child: Text('Qabxii: $score', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple[800])),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
               color: Colors.purple[50],
               child: Column(
                 children: [
-                  Text(
-                    q['question'],
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.purple),
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(q['question'], style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.purple), textAlign: TextAlign.center),
                   const SizedBox(height: 15),
-                  Text(
-                    q['options'].join('   '),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
+                  Text(q['options'].join('   '), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
                 ],
               ),
             ),
@@ -495,12 +392,16 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
             const SizedBox(height: 15),
             ElevatedButton(
               onPressed: checkMathAnswer,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-              child: const Text('Mirkaneessi fi Kuusi (Check Math)', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, padding: const EdgeInsets.all(12)),
+              child: const Text('Mirkaneessi (Check Math)', style: TextStyle(color: Colors.white, fontSize: 16)),
             ),
             const SizedBox(height: 20),
             if (mathFeedback.isNotEmpty)
-              Text(mathFeedback, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purple), textAlign: TextAlign.center),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: feedbackColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                child: Text(mathFeedback, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: feedbackColor), textAlign: TextAlign.center),
+              ),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -512,21 +413,16 @@ class _MathModuleScreenState extends State<MathModuleScreen> {
                         currentQuestionIndex--;
                         mathFeedback = "";
                         _mathController.clear();
+                        isAnswered = false;
                       });
                     },
                     child: const Text('Duubatti'),
                   ),
-                if (currentQuestionIndex < mathQuestions.length - 1)
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        currentQuestionIndex++;
-                        mathFeedback = "";
-                        _mathController.clear();
-                      });
-                    },
-                    child: const Text('Fuuldharatti'),
-                  ),
+                ElevatedButton(
+                  onPressed: nextQuestion,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+                  child: Text(currentQuestionIndex < mathQuestions.length - 1 ? 'Fuuldharatti' : 'Xumuruu'),
+                ),
               ],
             )
           ],
