@@ -327,23 +327,23 @@ def registration_page():
     # Stats Card
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-card">
             <h4>📊 Total</h4>
-            <h2>{}</h2>
+            <h2>{len(st.session_state.students)}</h2>
             <p style="color: #666; font-size: 0.9rem;">Barattoota Galmaa'an</p>
         </div>
-        """.format(len(st.session_state.students)), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     
     with col2:
         remaining = 80 - len(st.session_state.students)
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-card" style="border-top-color: #FF9800;">
             <h4>📝 Remaining</h4>
-            <h2>{}</h2>
+            <h2>{remaining}</h2>
             <p style="color: #666; font-size: 0.9rem;">Bakki Haafaa</p>
         </div>
-        """.format(remaining), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
@@ -685,5 +685,4 @@ def math_page():
     st.markdown(f"""
     <div class="custom-card" style="padding: 1.5rem;">
         <p style="font-size: 1.3rem; font-weight: bold; text-align: center;">{mq['question']}</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: 1rem 0;">
-            <div style="background: #
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0
