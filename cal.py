@@ -1,1055 +1,827 @@
 import streamlit as st
+import random
+import json
+import hashlib
+from datetime import datetime
 
-# PAGE CONFIGURATION
+# Page Configuration
 st.set_page_config(
-    page_title="Hiika Way (HW) App", page_icon="📖", layout="centered"
+    page_title="Hiika Way (HW)", 
+    page_icon="📚", 
+    layout="centered"
 )
 
-# CUSTOM STYLING (Background, Border, and Cover Page UI Enhancements)
-st.markdown(
-    """
-    <style>
+# Initialize Session State
+if "students" not in st.session_state:
+    st.session_state.students = []
+if "current_student" not in st.session_state:
+    st.session_state.current_student = None
+if "page" not in st.session_state:
+    st.session_state.page = "cover"
+if "w_score" not in st.session_state:
+    st.session_state.w_score = 0
+if "m_score" not in st.session_state:
+    st.session_state.m_score = 0
+if "r_index" not in st.session_state:
+    st.session_state.r_index = 0
+if "w_index" not in st.session_state:
+    st.session_state.w_index = 0
+if "m_index" not in st.session_state:
+    st.session_state.m_index = 0
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "user_role" not in st.session_state:
+    st.session_state.user_role = None
+if "student_data" not in st.session_state:
+    st.session_state.student_data = {}
+if "quiz_questions" not in st.session_state:
+    st.session_state.quiz_questions = []
+if "current_quiz_index" not in st.session_state:
+    st.session_state.current_quiz_index = 0
+if "quiz_attempts" not in st.session_state:
+    st.session_state.quiz_attempts = {}
+if "student_scores" not in st.session_state:
+    st.session_state.student_scores = {}
+if "teacher_questions" not in st.session_state:
+    st.session_state.teacher_questions = []
+
+# Custom CSS for beautiful UI
+st.markdown("""
+<style>
+    /* Main container styling */
     .main {
-        background: linear-gradient(135deg, #f4fbf7 0%, #e2f2e6 100%);
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
     
-    /* Student Button: Blue */
-    .student-btn button {
-        background-color: #1976D2;
+    /* Cover Page Styling */
+    .cover-page {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 30px;
+        border-radius: 30px;
+        text-align: center;
         color: white;
+        margin: 20px 0;
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.5);
+        border: 3px solid rgba(255,255,255,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cover-page::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .cover-page h1 {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+        font-size: 52px;
+        font-weight: 900;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cover-page h3 {
+        color: rgba(255,255,255,0.95) !important;
+        -webkit-text-fill-color: rgba(255,255,255,0.95) !important;
+        font-size: 22px;
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cover-page p {
+        color: rgba(255,255,255,0.9);
+        font-size: 18px;
+        line-height: 1.8;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cover-icon {
+        font-size: 80px;
+        margin: 10px 0;
+        display: inline-block;
+        animation: bounce 2s infinite;
+        position: relative;
+        z-index: 1;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    
+    /* Subject Cards */
+    .subject-card {
+        background: white;
+        padding: 25px 20px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin: 15px 0;
+        border: 3px solid transparent;
+        transition: all 0.4s ease;
+        cursor: pointer;
+        text-align: center;
+    }
+    
+    .subject-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+        border-color: #667eea;
+    }
+    
+    .subject-card .icon {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 10px;
+    }
+    
+    .subject-card .title {
+        font-size: 20px;
         font-weight: bold;
-        border-radius: 12px;
-        padding: 14px 22px;
-        border: 2px solid #0d47a1;
-        width: 100%;
-        box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
-        transition: 0.3s ease;
+        color: #333;
     }
-    .student-btn button:hover {
-        background-color: #0d47a1;
-        color: white;
-        border-color: #002171;
-        box-shadow: 0 6px 15px rgba(13, 71, 161, 0.4);
+    
+    .subject-card .subtitle {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
     }
-
-    /* Teacher Button: Purple */
-    .teacher-btn button {
-        background-color: #7B1FA2;
+    
+    /* Oromo Subject - Green Theme */
+    .oromo-card {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%);
+    }
+    
+    .oromo-card:hover {
+        border-color: #28a745;
+        box-shadow: 0 15px 40px rgba(40, 167, 69, 0.3);
+    }
+    
+    /* English Subject - Blue Theme */
+    .english-card {
+        border-color: #007bff;
+        background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+    }
+    
+    .english-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 15px 40px rgba(0, 123, 255, 0.3);
+    }
+    
+    /* Math Subject - Red Theme */
+    .math-card {
+        border-color: #dc3545;
+        background: linear-gradient(135deg, #fff5f5 0%, #fbe9e7 100%);
+    }
+    
+    .math-card:hover {
+        border-color: #dc3545;
+        box-shadow: 0 15px 40px rgba(220, 53, 69, 0.3);
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
         color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 14px 28px;
         font-weight: bold;
-        border-radius: 12px;
-        padding: 14px 22px;
-        border: 2px solid #4a148c;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         width: 100%;
-        box-shadow: 0 4px 10px rgba(123, 31, 162, 0.3);
-        transition: 0.3s ease;
+        margin: 5px 0;
     }
-    .teacher-btn button:hover {
-        background-color: #4a148c;
-        color: white;
-        border-color: #311b92;
-        box-shadow: 0 6px 15px rgba(74, 20, 140, 0.4);
+    
+    .stButton > button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
     }
-
-    /* General Button Styling fallback */
-    .stButton>button {
-        background-color: #2E7D32;
+    
+    .stButton > button:active {
+        transform: translateY(0px);
+    }
+    
+    /* Welcome button special style */
+    .welcome-btn > button {
+        background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+        box-shadow: 0 4px 20px rgba(247, 151, 30, 0.5);
+        color: #333;
+        font-size: 22px;
+        padding: 18px 30px;
+    }
+    
+    .welcome-btn > button:hover {
+        box-shadow: 0 8px 30px rgba(247, 151, 30, 0.7);
+        transform: translateY(-3px) scale(1.02);
+    }
+    
+    /* Key/Furtuu button */
+    .key-btn > button {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+    }
+    
+    .key-btn > button:hover {
+        box-shadow: 0 8px 30px rgba(245, 87, 108, 0.6);
+    }
+    
+    /* Login button */
+    .login-btn > button {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+    }
+    
+    .login-btn > button:hover {
+        box-shadow: 0 8px 30px rgba(76, 175, 80, 0.6);
+    }
+    
+    /* Success/Error messages */
+    .stAlert {
+        border-radius: 15px;
+        border-left: 5px solid;
+    }
+    
+    .stSuccess {
+        border-left-color: #28a745;
+        background: #d4edda;
+    }
+    
+    .stError {
+        border-left-color: #dc3545;
+        background: #f8d7da;
+    }
+    
+    .stWarning {
+        border-left-color: #ffc107;
+        background: #fff3cd;
+    }
+    
+    /* Header styling */
+    h1, h2, h3 {
+        background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    
+    h1 {
+        font-size: 42px !important;
+    }
+    h2 {
+        font-size: 32px !important;
+    }
+    h3 {
+        font-size: 24px !important;
+    }
+    
+    /* Input fields */
+    .stTextInput > div > div > input {
+        border-radius: 15px;
+        border: 2px solid #667eea;
+        padding: 12px 18px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: #764ba2;
+        box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.3);
+    }
+    
+    /* Select box */
+    .stSelectbox > div > div {
+        border-radius: 15px;
+        border: 2px solid #667eea;
+    }
+    
+    /* Progress bar */
+    .stProgress > div > div {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+    
+    /* Score display */
+    .score-display {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
+        padding: 15px 25px;
+        border-radius: 15px;
+        text-align: center;
+        font-size: 20px;
         font-weight: bold;
-        border-radius: 12px;
-        padding: 14px 22px;
-        border: 2px solid #1B5E20;
-        width: 100%;
-        box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
-        transition: 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        margin: 10px 0;
     }
-    .stButton>button:hover {
-        background-color: #1B5E20;
-        color: white;
-        border-color: #0d3b12;
-        box-shadow: 0 6px 15px rgba(27, 94, 32, 0.4);
+    
+    /* Border container */
+    .border-container {
+        border: 3px solid #667eea;
+        border-radius: 25px;
+        padding: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        background: white;
+        margin: 15px 0;
     }
-
-    .hero-box {
-        background: linear-gradient(135deg, #004d40 0%, #00695c 50%, #00897b 100%);
-        padding: 45px 30px;
+    
+    /* Dashboard card */
+    .dashboard-card {
+        background: white;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin: 10px 0;
+        border-left: 5px solid #667eea;
+    }
+    
+    /* Sidebar */
+    .sidebar-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
         border-radius: 20px;
         color: white;
+    }
+    
+    /* Footer */
+    .footer {
         text-align: center;
-        margin-bottom: 30px;
-        box-shadow: 0 10px 25px rgba(0, 77, 64, 0.4);
-        border: 3px solid #80cbc4;
+        color: #666;
+        padding: 20px 0;
+        margin-top: 30px;
+        border-top: 2px solid #eee;
+        font-size: 14px;
     }
-    .hero-box h1 {
-        font-size: 2.2rem;
-        margin-bottom: 15px;
-        font-weight: 800;
-        letter-spacing: 1px;
-    }
-    .hero-box p {
-        font-size: 1.15rem;
-        line-height: 1.6;
-        color: #e0f2f1;
-    }
-    .card-box {
-        background-color: white;
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #c8e6c9;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
-    }
-    </style>
-""",
-    unsafe_allow_html=True,
-)
+</style>
+""", unsafe_allow_html=True)
 
-# Global data store for students, grades (1-6), and scores in Session State
-if "global_students" not in st.session_state:
-  st.session_state.global_students = {}
-if "current_page" not in st.session_state:
-  st.session_state.current_page = "role_selection"
-if "current_student" not in st.session_state:
-  st.session_state.current_student = ""
-if "current_grade" not in st.session_state:
-  st.session_state.current_grade = "Kutaa 1"
-
-# Track attempt counts per question (max 3 attempts, 3rd attempt saves/locks)
-if "attempts" not in st.session_state:
-  st.session_state.attempts = {}
-
-
-# ==========================================
-# 1. ROLE SELECTION SCREEN (COVER PAGE)
-# ==========================================
-def role_selection_screen():
-  st.markdown(
-      """
-        <div class="hero-box">
-            <h1>📖 Hiika Way (HW) APP</h1>
-            <p>
-                Baga Nagaan Gara App Dandeettii Dubbisuu, Barreessuu Fi Shallaguu Barattootaa Adda Baasu Hiika Way itti Nagaan Dhuftan!<br><br>
-                <b>App kanaaf: Kutaa 1 - Kutaa 6 (Afaan Oromoo, Herrega, Ingliffaa)</b><br>
-                <b>Created by Kitesa Negasa Feyisa</b>
-            </p>
+# ============ COVER PAGE ============
+def cover_page():
+    st.markdown("""
+    <div class="cover-page">
+        <div class="cover-icon">📚</div>
+        <h1>Hiika Way App</h1>
+        <h3>🏫 Dandeettii Dubbisuu, Barreessuu fi Shallaguu</h3>
+        <p>
+            <strong>Baga Nagaan gara Hiika Way App Dandeettii dubbisuu, barreessuu fi shallaguu baratootaa kutaa 1-5 tiif Kitesa Negasa tiin kalaqameetti Dhuftan!</strong>
+        </p>
+        <div style="margin: 20px 0; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; position: relative; z-index: 1;">
+            <span style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px;">📖 Dubbisuu</span>
+            <span style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px;">✍️ Barreessuu</span>
+            <span style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px;">🔢 Shallaguu</span>
         </div>
-    """,
-      unsafe_allow_html=True,
-  )
-
-  # Centered container with reduced image width for the textbook illustration
-  _, img_col, _ = st.columns([1, 2, 1])
-  with img_col:
-    st.image(
-        "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80",
-        caption="Kitaabota Barattootaa Kutaa 1 - 6",
-        use_container_width=True,
-    )
-
-  st.markdown(
-      "<h3 style='text-align: center; color: #004d40; margin-top: 20px;"
-      " margin-bottom: 20px;'>🔑 Furtuu Filadhu:</h3>",
-      unsafe_allow_html=True,
-  )
-
-  col1, col2 = st.columns(2)
-  with col1:
-    st.markdown(
-        "<p style='text-align: center; color: #0D47A1; font-weight: bold;"
-        " font-size: 1.1rem;'>👤 Barataa (Student)</p>",
-        unsafe_allow_html=True,
-    )
-    st.markdown('<div class="student-btn">', unsafe_allow_html=True)
-    if st.button("🔑 Seeni (Barataa)", key="student_btn"):
-      st.session_state.current_page = "name_input"
-      st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
-  with col2:
-    st.markdown(
-        "<p style='text-align: center; color: #4A148C; font-weight: bold;"
-        " font-size: 1.1rem;'>🎓 Barsiisaa (Teacher)</p>",
-        unsafe_allow_html=True,
-    )
-    # Centering the teacher gown image inside column
-    _, icon_col, _ = st.columns([1, 2, 1])
-    with icon_col:
-      st.image(
-          "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=200&q=80",
-          width=70,
-      )
-    st.markdown('<div class="teacher-btn">', unsafe_allow_html=True)
-    if st.button("📊 Gabaasa Barsiisaa", key="teacher_btn"):
-      st.session_state.current_page = "teacher_dashboard"
-      st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-# ==========================================
-# 2. NAME & GRADE INPUT SCREEN
-# ==========================================
-def name_input_screen():
-  st.markdown(
-      """
-        <div class="hero-box">
-            <h2>Galmee Maqaa & Kutaa Barataa</h2>
-            <p>Maaloo maqaa kee guutuu fi kutaa kee filadhu</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Subject Cards
+    st.markdown("### 📚 Qabiyyee Gosa Barnootaa")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div class="subject-card oromo-card">
+            <span class="icon">🌿</span>
+            <div class="title">AFAAN OROMOO</div>
+            <div class="subtitle">Kutaa 1-5</div>
+            <div style="margin-top: 8px; font-size: 12px; color: #28a745;">📖 Dubbisuu & ✍️ Barreessuu</div>
         </div>
-    """,
-      unsafe_allow_html=True,
-  )
-
-  name = st.text_input("Maqaa Kee", placeholder="Maqaa kee guutuu barreessi...")
-  grade = st.selectbox(
-      "Kutaa Barumsaa (Grade 1 - 6)",
-      ["Kutaa 1", "Kutaa 2", "Kutaa 3", "Kutaa 4", "Kutaa 5", "Kutaa 6"],
-  )
-
-  col1, col2 = st.columns(2)
-  with col1:
-    if st.button("Gara Appiitti Darbi"):
-      if name.strip():
-        st.session_state.current_student = name.strip()
-        st.session_state.current_grade = grade
-        if name.strip() not in st.session_state.global_students:
-          st.session_state.global_students[name.strip()] = {
-              "grade": grade,
-              "afaanOromoo": 0,
-              "math": 0,
-              "english": 0,
-          }
-        st.session_state.current_page = "home"
-        st.rerun()
-      else:
-        st.warning("Mee dura maqaa kee barreessi!")
-  with col2:
-    if st.button("⬅️ Duubatti"):
-      st.session_state.current_page = "role_selection"
-      st.rerun()
-
-
-# ==========================================
-# 3. HOME SCREEN (3 GOSA BARNOOTAA)
-# ==========================================
-def home_screen():
-  st.markdown(
-      f"""
-        <div class="hero-box">
-            <h2>Baga nagaan dhuftte, {st.session_state.current_student} ({st.session_state.current_grade})!</h2>
-            <p>Gosa barnootaa barachuu barbaaddu filadhu</p>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="subject-card english-card">
+            <span class="icon">🌍</span>
+            <div class="title">AFAAN INGILIFFAA</div>
+            <div class="subtitle">Kutaa 1-5</div>
+            <div style="margin-top: 8px; font-size: 12px; color: #007bff;">📖 Reading & ✍️ Writing</div>
         </div>
-    """,
-      unsafe_allow_html=True,
-  )
+        """, unsafe_allow_html=True)
+    
+    col3, col4 = st.columns(2)
+    
+    with col3:
+        st.markdown("""
+        <div class="subject-card math-card">
+            <span class="icon">🔢</span>
+            <div class="title">HERREGA</div>
+            <div class="subtitle">Kutaa 1-5</div>
+            <div style="margin-top: 8px; font-size: 12px; color: #dc3545;">➕ Subtraction & ✖️ Multiplication</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown("""
+        <div class="subject-card" style="border-color: #ff6b6b; background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);">
+            <span class="icon">🏆</span>
+            <div class="title">QORMAATA WALIIGALAA</div>
+            <div class="subtitle">Kutaa 1-5</div>
+            <div style="margin-top: 8px; font-size: 12px; color: #ff6b6b;">📊 Comprehensive Assessment</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    # Welcome button with hand icon
+    st.markdown("""
+    <div style="text-align: center; margin: 20px 0;">
+        <p style="font-size: 20px; font-weight: bold; color: #667eea;">👋 WELCOME TO HIKA WAY APP</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🤝 Harka Fuudha Galchi", use_container_width=True, key="welcome_btn"):
+            st.session_state.page = "login"
+            st.rerun()
+    
+    st.divider()
+    
+    # Furtuu (Key) section
+    st.markdown("""
+    <div style="text-align: center; margin: 10px 0;">
+        <p style="font-size: 16px; color: #666;">🔑 FURTUU (KEY)</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🔐 Furtuu Galchi", use_container_width=True, key="key_btn"):
+            st.info("🔑 Furtuun galmaa'eera! Amma app fayyadamuu dandeessa.")
+            st.balloons()
 
-  if st.button(
-      "📖 Afaan Oromoo (Dubbisuu, Qubee, Jechoota, Hiika & Caqasa)"
-  ):
-    st.session_state.current_page = "afaan_oromoo"
-    st.rerun()
+# ============ LOGIN SYSTEM ============
+def login_page():
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
+                padding: 20px; border-radius: 20px; text-align: center; margin: 10px 0;">
+        <h2 style="color: white !important; -webkit-text-fill-color: white !important;">🔐 Login System</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.container():
+            email = st.text_input("📧 Gmail", placeholder="name@gmail.com")
+            password = st.text_input("🔑 Password", type="password", placeholder="Enter your password")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("👨‍🎓 Barataa Login", use_container_width=True):
+                    if email and password:
+                        st.session_state.logged_in = True
+                        st.session_state.user_role = "student"
+                        st.session_state.page = "student_dashboard"
+                        st.success("✅ Barataa milkaa'inaan galmaa'e!")
+                        st.rerun()
+                    else:
+                        st.warning("⚠️ Mee Gmail fi Password barreessi!")
+            
+            with col2:
+                if st.button("👨‍🏫 Barsiisaa Login", use_container_width=True):
+                    if email and password:
+                        if email == "teacher@hiika.com" and password == "teacher123":
+                            st.session_state.logged_in = True
+                            st.session_state.user_role = "teacher"
+                            st.session_state.page = "teacher_dashboard"
+                            st.success("✅ Barsiisaa milkaa'inaan galmaa'e!")
+                            st.rerun()
+                        else:
+                            st.warning("⚠️ Gmail ykn Password dogoggora qaba!")
+                    else:
+                        st.warning("⚠️ Mee Gmail fi Password barreessi!")
+            
+            st.divider()
+            if st.button("🏠 Gara Fuula Duraatti Deebi'i", use_container_width=True):
+                st.session_state.page = "cover"
+                st.rerun()
 
-  st.write("")
-  if st.button("🔢 Herrega - Mathematics (Shallaggaa fi Rakkoo Hiikuu)"):
-    st.session_state.current_page = "math"
-    st.rerun()
+# ============ STUDENT DASHBOARD ============
+def student_dashboard():
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 20px; border-radius: 20px; text-align: center; margin: 10px 0;">
+        <h2 style="color: white !important; -webkit-text-fill-color: white !important;">👨‍🎓 Dashboard Barataa</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Student registration form
+    with st.container():
+        st.markdown("### 📝 Galmee Barataa")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            full_name = st.text_input("Maqaa Guutuu Barataa", placeholder="Maqaa kee barreessi...")
+            grade = st.selectbox("Kutaa", ["Kutaa 1", "Kutaa 2", "Kutaa 3", "Kutaa 4", "Kutaa 5"])
+        
+        with col2:
+            class_number = st.selectbox("Lakkoofsa Daree", list(range(1, 101)))
+            section = st.selectbox("Section (Daree)", ["A", "B", "C", "D", "E", "F", "G", "H"])
+        
+        if st.button("💾 Save", use_container_width=True):
+            if full_name:
+                st.session_state.student_data = {
+                    "name": full_name,
+                    "grade": grade,
+                    "class": class_number,
+                    "section": section,
+                    "registered": True
+                }
+                st.success(f"✅ Barataa {full_name} galmoofteetta! Qormaataaf qophaa'i!")
+                st.balloons()
+            else:
+                st.warning("⚠️ Mee maqaa kee barreessi!")
+    
+    st.divider()
+    
+    # Navigation buttons
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        if st.button("➡️ Gara Gaaffiitti Darbi", use_container_width=True):
+            if st.session_state.student_data.get("registered"):
+                st.session_state.page = "quiz_start"
+                st.rerun()
+            else:
+                st.warning("⚠️ Mee dura galmaa'i!")
+    
+    with col2:
+        if st.button("⬅️ Gara Duubatti Deebi'i", use_container_width=True):
+            st.session_state.page = "login"
+            st.rerun()
 
-  st.write("")
-  if st.button("🔤 Ingliffaa - English (Reading, Grammar & Vocabulary)"):
-    st.session_state.current_page = "english"
-    st.rerun()
-
-  st.markdown("---")
-  if st.button("⬅️ Ba'uu / Maqaa Jijjiiruu"):
-    st.session_state.current_student = ""
-    st.session_state.current_page = "role_selection"
-    st.rerun()
-
-
-# ==========================================
-# 4. AFAAN OROMOO MODULE (Grades 1-6)
-# ==========================================
-def afaan_oromoo_screen():
-  grade = st.session_state.current_grade
-  st.subheader(f"Afaan Oromoo - {grade} ({st.session_state.current_student})")
-
-  ao_db = {
-      "Kutaa 1": [
-          {
-              "type": "reading",
-              "title": "Dubbisa 1: Harmee Koo",
-              "text": (
-                  "Harmeen koo bultii keenyaaf cufa dabarsiti. Inni sun"
-                  " jaalala guddaadha. Harmeen harka qabdee nu barsiifti."
-              ),
-              "question": (
-                  "Gaaffii Dubbisaa: Harmeen maaliin nu barsiifti? (Deebii"
-                  " gabaabaa barreessi)"
-              ),
-              "expected": ["harka", "harka qabdee", "jaalala"],
-          },
-          {
-              "type": "mcq",
-              "title": "Qubee fi Jechoota Laafaa",
-              "text": "Qubee Afaan Oromoo keessaa qubeen laafaa isa kam?",
-              "options": ["A) c", "B) b", "C) q", "D) x"],
-              "answer": "B",
-          },
-      ],
-      "Kutaa 2": [
-          {
-              "type": "reading",
-              "title": "Dubbisa 2: Beeylada Manaa",
-              "text": (
-                  "Beeylada manaa keessaa loon, re'ee fi hoolaan ni argamu."
-                  " Isaanis nyaata nuu kennu."
-              ),
-              "question": (
-                  "Gaaffii Dubbisaa: Beeyladni manaa maal nuu kennu?"
-              ),
-              "expected": ["nyaata", "aanan", "foniin"],
-          },
-          {
-              "type": "mcq",
-              "title": "Jechoota Gabaabaa",
-              "text": "Jechi 'bishaan' jedhu gosa maaliiti?",
-              "options": [
-                  "A) Jecha gabaabaa",
-                  "B) Jecha dheeraa",
-                  "C) Qubee",
-                  "D) Lakkoofsa",
-              ],
-              "answer": "A",
-          },
-      ],
-      "Kutaa 3": [
-          {
-              "type": "reading",
-              "title": "Dubbisa 3: Qonna Biyya Keenyaa",
-              "text": (
-                  "Qonnaan bultootni keenya bonaaf ganna midhaan facaasuun"
-                  " biyya nyaachisu. Qonnaan ooluun kabaja guddaadha."
-              ),
-              "question": (
-                  "Gaaffii Dubbisaa: Qonnaan bultootni yoom midhaan facaasu?"
-              ),
-              "expected": ["bonaaf ganna", "bona fi ganna", "ganna"],
-          },
-          {
-              "type": "mcq",
-              "title": "Gaalee fi Himoota",
-              "text": "Hima sirrii ta'e isa kam?",
-              "options": [
-                  "A) Mana deemna nuyi.",
-                  "B) Nuyi gara manaatti deemna.",
-                  "C) Deemna nuyi mana.",
-                  "D) Mana nuyi deemna.",
-              ],
-              "answer": "B",
-          },
-      ],
-      "Kutaa 4": [
-          {
-              "type": "reading",
-              "title": "Dubbisa 4: Beekumsa Aadaa Oromoo",
-              "text": (
-                  "Gadaan sirna bulchiinsa dimokraasii durii ti. Inni"
-                  " dhugaa, walqixxummaa fi nagaaf dhaabata."
-              ),
-              "question": "Gaaffii Dubbisaa: Gadaan sirna maalii ti?",
-              "options": [
-                  "A) Bulchiinsa dimokraasii",
-                  "B) Waraanaa",
-                  "C) Daldala qofa",
-                  "D) Ispoortii",
-              ],
-              "answer": "A",
-          },
-          {
-              "type": "mcq",
-              "title": "Qama Hiika Jechootaa",
-              "text": "Hiika jecha 'Goota' jedhuu isa kam?",
-              "options": ["A) Sodaataa", "B) Jabduu/Cicha", "C) Damaqaa", "D) Lafa"],
-              "answer": "B",
-          },
-      ],
-      "Kutaa 5": [
-          {
-              "type": "reading",
-              "title": "Dubbisa 5: Seenaa fi Ogbarruu",
-              "text": (
-                  "Oggbarruun Afaan Oromoo afoola keessaa mammaaksa, hibboo fi"
-                  " weedduu qabateesoo dhalootaa dhalootatti darbe."
-              ),
-              "question": "Gaaffii Dubbisaa: Afoolli maal of keessaa qaba?",
-              "options": [
-                  "A) Mammaaksa, hibboo fi weedduu",
-                  "B) Herrega qofa",
-                  "C) Seera lakkoofsaa",
-                  "D) Faayinaansii",
-              ],
-              "answer": "A",
-          },
-          {
-              "type": "mcq",
-              "title": "Ergaa Mammaaksaa",
-              "text": "Mammaaksi 'Harka tokkoon qilleensi hin qabamne' maal ibsa?",
-              "options": [
-                  "A) Tokkummaan humna ta'uu",
-                  "B) Qilleensa qabachuu",
-                  "C) Kophaa deemuu",
-                  "D) Humna dhabuu",
-              ],
-              "answer": "A",
-          },
-      ],
-      "Kutaa 6": [
-          {
-              "type": "reading",
-              "title": "Dubbisa 6: Xiinsammuu fi Hojii Gamtaa",
-              "text": (
-                  "Hojjiin gamtaa milkaa'ina fida. Namoonni waliin hojjetan"
-                  " rakkoo salphaatti injifatu."
-              ),
-              "question": "Gaaffii Dubbisaa: Hojjiin gamtaa maal fida?",
-              "expected": ["milkaa'ina", "milkaa ina", "injifannoo"],
-          },
-          {
-              "type": "mcq",
-              "title": "Qeeqqa Barruu",
-              "text": "Barruu keessatti 'Milkaa'ina' jechuun hiika maal qaba?",
-              "options": [
-                  "A) Kufaatii",
-                  "B) Galma ga'uu",
-                  "C) Daddaffii",
-                  "D) Boqonnaa",
-              ],
-              "answer": "B",
-          },
-      ],
-  }
-
-  questions = ao_db.get(grade, ao_db["Kutaa 1"])
-
-  if "ao_index" not in st.session_state:
-    st.session_state.ao_index = 0
-    st.session_state.ao_score = 0
-
-  idx = st.session_state.ao_index
-  q = questions[idx]
-
-  st.progress((idx + 1) / len(questions))
-  c1, c2 = st.columns([3, 1])
-  c1.markdown(f"**Gaaffii {idx + 1} / {len(questions)} : {q['title']}**")
-  c2.markdown(f"**Qabxii: {st.session_state.ao_score}**")
-
-  if q["type"] == "reading" and "text" in q:
-    st.markdown(
-        f"""
-            <div style="background-color: #f1f8e9; padding: 15px; border-radius: 10px; border-left: 5px solid #2e7d32; margin-bottom: 15px;">
-                <b>📚 Qajeelfama Dubbisuu:</b><br>{q['text']}
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-  st.markdown(f"### {q.get('question', q.get('text'))}")
-
-  if "options" in q:
-    for opt in q["options"]:
-      st.write(opt)
-
-  attempt_key = ("afaan_oromoo", grade, idx)
-  if attempt_key not in st.session_state.attempts:
-    st.session_state.attempts[attempt_key] = 0
-
-  current_attempts = st.session_state.attempts[attempt_key]
-  st.write(
-      f"⚠️ Carraa deebii yaaluu: **{current_attempts} / 3** (Carraan 3ffaan"
-      " ni kuusama/save ta'a)"
-  )
-
-  ans = st.text_input("Deebii kee asitti barreessi:", key=f"ao_ans_{grade}_{idx}")
-
-  if st.button("Mirkaneessi Afaan Oromoo"):
-    if current_attempts < 3:
-      st.session_state.attempts[attempt_key] += 1
-      is_correct = False
-
-      if "answer" in q:
-        if (
-            ans.strip().upper() == q["answer"]
-            or ans.strip().lower() == q["answer"].lower()
-        ):
-          is_correct = True
-      elif "expected" in q:
-        if any(exp in ans.strip().lower() for exp in q["expected"]):
-          is_correct = True
-
-      if is_correct:
-        st.session_state.ao_score += 10
-        st.success("🎉 Sirriitti deebiste, Foyyee qabda, Si hafa!")
-        st.session_state.attempts[attempt_key] = 3
-      else:
-        rem = 3 - st.session_state.attempts[attempt_key]
-        if rem > 0:
-          st.warning(
-              f"❌ Dogoggora! Ammas yaali. Carraan hafe: {rem} (Carraan"
-              " 3ffaan ni kuusama)"
-          )
-        else:
-          st.error(
-              "❌ Carraan 3ffaan xumurameera. Deebiin sirrii kuufameera (0"
-              " qabxii carraa kanaaf)."
-          )
-    else:
-      st.info("Barataan carraa 3 guutee xumureera.")
-
-  st.markdown("---")
-  b1, b2 = st.columns(2)
-  with b1:
-    if idx > 0 and st.button("⬅️ Duubatti (Previous)"):
-      st.session_state.ao_index -= 1
-      st.rerun()
-  with b2:
-    if idx < len(questions) - 1:
-      if st.button("Fuuldharatti (Next) ➡️"):
-        st.session_state.ao_index += 1
-        st.rerun()
-    else:
-      if st.button("Xumuruu & Galchuu"):
-        st.session_state.global_students[st.session_state.current_student][
-            "afaanOromoo"
-        ] = st.session_state.ao_score
-        st.success("Qabxiin Afaan Oromoo guutuu galmeeffameera!")
-        st.session_state.ao_index = 0
-        st.session_state.ao_score = 0
-        st.session_state.current_page = "home"
+# ============ QUIZ START PAGE ============
+def quiz_start_page():
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); 
+                padding: 20px; border-radius: 20px; text-align: center; margin: 10px 0;">
+        <h2 style="color: white !important; -webkit-text-fill-color: white !important;">📝 Baga nagaan Gara Kutaa Gaaffiitti Dhuftan!</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Generate 60 questions (20 from each subject)
+    if not st.session_state.quiz_questions:
+        st.session_state.quiz_questions = generate_questions()
+    
+    if "current_quiz_index" not in st.session_state:
+        st.session_state.current_quiz_index = 0
+    if "quiz_attempts" not in st.session_state:
+        st.session_state.quiz_attempts = {}
+    
+    q = st.session_state.quiz_questions[st.session_state.current_quiz_index]
+    
+    # Progress
+    progress = (st.session_state.current_quiz_index + 1) / len(st.session_state.quiz_questions)
+    st.progress(progress)
+    st.write(f"Gaaffii: {st.session_state.current_quiz_index + 1} / {len(st.session_state.quiz_questions)}")
+    
+    # Display question
+    st.markdown(f"""
+    <div class="border-container">
+        <div style="font-size: 40px; text-align: center;">{q.get('image', '❓')}</div>
+        <h4>Gaaffii {st.session_state.current_quiz_index + 1}:</h4>
+        <p style="font-size: 18px; font-weight: bold;">{q['question']}</p>
+        <p style="color: #666; font-size: 14px;">🏷️ {q['category']} | ⭐ {q['difficulty']}</p>
+        <div style="background: #f0f0f0; padding: 15px; border-radius: 10px; margin: 10px 0;">
+            {'  '.join(q['options'])}
+        </div>
+        <p style="color: #666; font-size: 14px;">📝 Yeroo yaala: {3 - q.get('attempts', 0)} hafte</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Audio button if available
+    if q.get('audio'):
+        if st.button("🔊 Sagalee Dhaggeeffadhu", use_container_width=True):
+            st.toast(f"🎧 {q['audio']}")
+    
+    # Answer input
+    ans = st.text_input("Deebii kee asitti barreessi (Fkn: A)", key=f"quiz_ans_{st.session_state.current_quiz_index}", placeholder="Filannoo kee barreessi...")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("✅ Mirkaneessi", use_container_width=True):
+            if ans.strip().upper() == q["answer"]:
+                st.success(f"🎉 Sirriidha {st.session_state.student_data.get('name', 'Barataa')}!")
+                q['correct'] = True
+                q['attempts'] = q.get('attempts', 0)
+                st.balloons()
+            else:
+                q['attempts'] = q.get('attempts', 0) + 1
+                if q['attempts'] >= 3:
+                    st.error(f"❌ {st.session_state.student_data.get('name', 'Barataa')}, hin deebisne!")
+                    q['correct'] = False
+                else:
+                    st.error(f"❌ {st.session_state.student_data.get('name', 'Barataa')}, yeroo {q['attempts']} dogoggora qaba! Mee irra deebi'iitii yaali.")
+    
+    with col2:
+        if st.button("⏭️ Gaaffii Aanu", use_container_width=True):
+            if st.session_state.current_quiz_index < len(st.session_state.quiz_questions) - 1:
+                st.session_state.current_quiz_index += 1
+                st.rerun()
+            else:
+                st.session_state.page = "quiz_results"
+                st.rerun()
+    
+    st.divider()
+    if st.button("🏠 Gara Manayeessaa (Home)", use_container_width=True):
+        st.session_state.page = "student_dashboard"
         st.rerun()
 
-  if st.button("🏠 Gara Manayeessaa (Home)"):
-    st.session_state.ao_index = 0
-    st.session_state.ao_score = 0
-    st.session_state.current_page = "home"
-    st.rerun()
-
-
-# ==========================================
-# 5. MATH MODULE (Grades 1-6)
-# ==========================================
-def math_screen():
-  grade = st.session_state.current_grade
-  st.subheader(f"Herrega - {grade} ({st.session_state.current_student})")
-
-  math_db = {
-      "Kutaa 1": [
-          {
-              "question": "8 + 7 = ?",
-              "options": ["A) 14", "B) 15", "C) 16", "D) 13"],
-              "answer": "15",
-          },
-          {
-              "question": "10 - 4 = ?",
-              "options": ["A) 5", "B) 6", "C) 7", "D) 4"],
-              "answer": "6",
-          },
-      ],
-      "Kutaa 2": [
-          {
-              "question": "25 + 34 = ?",
-              "options": ["A) 59", "B) 58", "C) 69", "D) 55"],
-              "answer": "59",
-          },
-          {
-              "question": "50 - 18 = ?",
-              "options": ["A) 32", "B) 34", "C) 22", "D) 42"],
-              "answer": "32",
-          },
-      ],
-      "Kutaa 3": [
-          {
-              "question": "14 × 3 = ?",
-              "options": ["A) 42", "B) 38", "C) 44", "D) 36"],
-              "answer": "42",
-          },
-          {
-              "question": "72 ÷ 8 = ?",
-              "options": ["A) 8", "B) 9", "C) 7", "D) 6"],
-              "answer": "9",
-          },
-      ],
-      "Kutaa 4": [
-          {
-              "question": "1/2 + 1/4 = ?",
-              "options": ["A) 3/4", "B) 2/6", "C) 1/6", "D) 2/4"],
-              "answer": "3/4",
-          },
-          {
-              "question": "150 + 275 - 125 = ?",
-              "options": ["A) 300", "B) 250", "C) 275", "D) 320"],
-              "answer": "300",
-          },
-      ],
-      "Kutaa 5": [
-          {
-              "question": "0.5 + 3/4 = ? (Deebii lakkoofsa decimal/fraction)",
-              "options": ["A) 1.25", "B) 1.5", "C) 0.75", "D) 1.1"],
-              "answer": "1.25",
-          },
-          {
-              "question": (
-                  "Pariimerii hirdhicha (rectangle) dheerinni 10cm, bal'inni"
-                  " 5cm hammami?"
-              ),
-              "options": ["A) 30cm", "B) 50cm", "C) 15cm", "D) 25cm"],
-              "answer": "30cm",
-          },
-      ],
-      "Kutaa 6": [
-          {
-              "question": "L.C.M of 6 and 8 = ?",
-              "options": ["A) 24", "B) 48", "C) 12", "D) 18"],
-              "answer": "24",
-          },
-          {
-              "question": (
-                  "Hangi oowwii 20% dabaluun 60 ta'e, jalqaba hammami ture?"
-              ),
-              "options": ["A) 50", "B) 48", "C) 55", "D) 45"],
-              "answer": "50",
-          },
-      ],
-  }
-
-  questions = math_db.get(grade, math_db["Kutaa 1"])
-
-  if "m_index" not in st.session_state:
-    st.session_state.m_index = 0
-    st.session_state.m_score = 0
-
-  idx = st.session_state.m_index
-  q = questions[idx]
-
-  c1, c2 = st.columns([3, 1])
-  c1.markdown(f"**Gaaffii Herregaa: {idx + 1} / {len(questions)}**")
-  c2.markdown(f"**Qabxii: {st.session_state.m_score}**")
-
-  st.markdown(f"### {q['question']}")
-  for opt in q["options"]:
-    st.write(opt)
-
-  attempt_key = ("math", grade, idx)
-  if attempt_key not in st.session_state.attempts:
-    st.session_state.attempts[attempt_key] = 0
-
-  current_attempts = st.session_state.attempts[attempt_key]
-  st.write(
-      f"⚠️ Carraa deebii yaaluu: **{current_attempts} / 3** (Carraan 3ffaan"
-      " ni kuusama/save ta'a)"
-  )
-
-  m_ans = st.text_input(
-      "Deebii kee asitti barreessi (Fkn: 15 ykn A):", key=f"m_ans_{grade}_{idx}"
-  )
-
-  if st.button("Mirkaneessi Herregaa"):
-    if current_attempts < 3:
-      st.session_state.attempts[attempt_key] += 1
-      is_correct = False
-      cleaned_ans = m_ans.strip().upper()
-
-      if cleaned_ans == q["answer"].upper() or cleaned_ans == q["answer"][0]:
-        is_correct = True
-
-      if is_correct:
-        st.session_state.m_score += 10
-        st.success("🎉 Sirriitti deebiste, Foyyee qabda, Si hafa!")
-        st.session_state.attempts[attempt_key] = 3
-      else:
-        rem = 3 - st.session_state.attempts[attempt_key]
-        if rem > 0:
-          st.warning(
-              f"❌ Dogoggora qaba! Carraan hafe: {rem} (Carraan 3ffaan ni"
-              " kuusama)"
-          )
-        else:
-          st.error(
-              f"❌ Carraan 3ffaan xumurameera. Deebiin sirrii: {q['answer']}"
-          )
-    else:
-      st.info("Barataan carraa 3 guutee xumureera.")
-
-  st.markdown("---")
-  b1, b2 = st.columns(2)
-  with b1:
-    if idx > 0 and st.button("⬅️ Duubatti (Previous)"):
-      st.session_state.m_index -= 1
-      st.rerun()
-  with b2:
-    if idx < len(questions) - 1:
-      if st.button("Fuuldharatti (Next) ➡️"):
-        st.session_state.m_index += 1
-        st.rerun()
-    else:
-      if st.button("Xumuruu & Deebi'i"):
-        st.session_state.global_students[st.session_state.current_student][
-            "math"
-        ] = st.session_state.m_score
-        st.success(
-            f"Galatoomi! Qabxii Herregaa waliigalaa: {st.session_state.m_score}"
-        )
-        st.session_state.m_index = 0
-        st.session_state.m_score = 0
-        st.session_state.current_page = "home"
-        st.rerun()
-
-  if st.button("🏠 Gara Manayeessaa (Home)"):
-    st.session_state.m_index = 0
-    st.session_state.m_score = 0
-    st.session_state.current_page = "home"
-    st.rerun()
-
-
-# ==========================================
-# 6. ENGLISH MODULE (Grades 1-6)
-# ==========================================
-def english_screen():
-  grade = st.session_state.current_grade
-  st.subheader(f"English - {grade} ({st.session_state.current_student})")
-
-  english_db = {
-      "Kutaa 1": [
-          {
-              "type": "reading",
-              "title": "Reading 1: My School",
-              "text": (
-                  "This is my school. My school name is Hiika Way. We learn"
-                  " English and Afaan Oromoo here everyday."
-              ),
-              "question": "Question: What is the name of the school?",
-              "expected": ["hiika way", "hiikaway"],
-          },
-          {
-              "type": "mcq",
-              "title": "Alphabet & Greetings",
-              "text": "Complete: Good ______!",
-              "options": ["A) Morning", "B) Table", "C) Book", "D) Pen"],
-              "answer": "Morning",
-          },
-      ],
-      "Kutaa 2": [
-          {
-              "type": "reading",
-              "title": "Reading 2: Animals",
-              "text": (
-                  "Cats and dogs are domestic animals. Dogs guard our houses"
-                  " and cats catch mice."
-              ),
-              "question": "Question: What do dogs do?",
-              "expected": ["guard", "guard our houses", "house"],
-          },
-          {
-              "type": "mcq",
-              "title": "Vocabulary",
-              "text": "Which word means a place where we buy things?",
-              "options": ["A) Market", "B) River", "C) Mountain", "D) Cloud"],
-              "answer": "Market",
-          },
-      ],
-      "Kutaa 3": [
-          {
-              "type": "reading",
-              "title": "Reading 3: The Family",
-              "text": (
-                  "A family consists of a father, mother, brothers and sisters."
-                  " They live together and help each other."
-              ),
-              "question": "Question: Who are members of a family?",
-              "expected": [
-                  "father",
-                  "mother",
-                  "brothers and sisters",
-                  "parents",
-              ],
-          },
-          {
-              "type": "mcq",
-              "title": "Grammar Tense",
-              "text": "Choose the correct past tense of 'go':",
-              "options": ["A) Goes", "B) Went", "C) Gone", "D) Going"],
-              "answer": "Went",
-          },
-      ],
-      "Kutaa 4": [
-          {
-              "type": "reading",
-              "title": "Reading 4: Water Cycle",
-              "text": (
-                  "Water evaporates from oceans, forms clouds, and falls back as"
-                  " rain on the earth."
-              ),
-              "question": "Question: What falls back on the earth?",
-              "expected": ["rain", "water"],
-          },
-          {
-              "type": "mcq",
-              "title": "Parts of Speech",
-              "text": "Identify the noun in: 'The boy runs fast.'",
-              "options": ["A) Boy", "B) Runs", "C) Fast", "D) The"],
-              "answer": "Boy",
-          },
-      ],
-      "Kutaa 5": [
-          {
-              "type": "reading",
-              "title": "Reading 5: Solar System",
-              "text": (
-                  "The Earth revolves around the Sun. It takes 365 days to"
-                  " complete one full orbit."
-              ),
-              "question": (
-                  "Question: How many days does Earth take to orbit the Sun?"
-              ),
-              "expected": ["365", "365 days"],
-          },
-          {
-              "type": "mcq",
-              "title": "Synonyms",
-              "text": "Choose the synonym of 'Big':",
-              "options": ["A) Small", "B) Large", "C) Cold", "D) Short"],
-              "answer": "Large",
-          },
-      ],
-      "Kutaa 6": [
-          {
-              "type": "reading",
-              "title": "Reading 6: Scientific Research",
-              "text": (
-                  "Researchers analyze data, study patterns, and draw valid"
-                  " conclusions based on empirical evidence."
-              ),
-              "question": "Question: What do researchers analyze?",
-              "expected": ["data", "empirical evidence"],
-          },
-          {
-              "type": "mcq",
-              "title": "Advanced Grammar",
-              "text": "Choose the correct passive voice: 'She writes a letter.'",
-              "options": [
-                  "A) A letter is written by her.",
-                  "B) A letter was written.",
-                  "C) She wrote a letter.",
-                  "D) Letter is write.",
-              ],
-              "answer": "A",
-          },
-      ],
-  }
-
-  questions = english_db.get(grade, english_db["Kutaa 1"])
-
-  if "e_index" not in st.session_state:
-    st.session_state.e_index = 0
-    st.session_state.e_score = 0
-
-  idx = st.session_state.e_index
-  q = questions[idx]
-
-  st.progress((idx + 1) / len(questions))
-  c1, c2 = st.columns([3, 1])
-  c1.markdown(f"**Question {idx + 1} / {len(questions)} : {q['title']}**")
-  c2.markdown(f"**Score: {st.session_state.e_score}**")
-
-  if q["type"] == "reading" and "text" in q:
-    st.markdown(
-        f"""
-            <div style="background-color: #f1f8e9; padding: 15px; border-radius: 10px; border-left: 5px solid #2e7d32; margin-bottom: 15px;">
-                <b>📚 Reading Passage:</b><br>{q['text']}
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-  st.markdown(f"### {q.get('question', q.get('text'))}")
-  if "options" in q:
-    for opt in q["options"]:
-      st.write(opt)
-
-  attempt_key = ("english", grade, idx)
-  if attempt_key not in st.session_state.attempts:
-    st.session_state.attempts[attempt_key] = 0
-
-  current_attempts = st.session_state.attempts[attempt_key]
-  st.write(
-      f"⚠️ Attempt count: **{current_attempts} / 3** (3rd attempt saves/locks"
-      " final record)"
-  )
-
-  e_ans = st.text_input("Type your answer here:", key=f"e_ans_{grade}_{idx}")
-
-  if st.button("Check Answer"):
-    if current_attempts < 3:
-      st.session_state.attempts[attempt_key] += 1
-      is_correct = False
-      cleaned_ans = e_ans.strip().lower()
-
-      if "answer" in q:
-        if (
-            cleaned_ans == q["answer"].lower()
-            or cleaned_ans == q["answer"][0].lower()
-        ):
-          is_correct = True
-      elif "expected" in q:
-        if any(exp in cleaned_ans for exp in q["expected"]):
-          is_correct = True
-
-      if is_correct:
-        st.session_state.e_score += 10
-        st.success("🎉 Sirriitti deebiste, Foyyee qabda, Si hafa!")
-        st.session_state.attempts[attempt_key] = 3
-      else:
-        rem = 3 - st.session_state.attempts[attempt_key]
-        if rem > 0:
-          st.warning(
-              f"❌ Incorrect! Remaining attempts: {rem} (3rd attempt will be"
-              " saved)"
-          )
-        else:
-          ans_text = q.get("answer", q.get("expected", [""])[0])
-          st.error(
-              f"❌ 3rd attempt reached. Saved as incorrect. Correct answer:"
-              f" {ans_text}"
-          )
-    else:
-      st.info("Maximum attempts completed for this question.")
-
-  st.markdown("---")
-  b1, b2 = st.columns(2)
-  with b1:
-    if idx > 0 and st.button("⬅️ Duubatti (Previous)"):
-      st.session_state.e_index -= 1
-      st.rerun()
-  with b2:
-    if idx < len(questions) - 1:
-      if st.button("Fuuldharatti (Next) ➡️"):
-        st.session_state.e_index += 1
-        st.rerun()
-    else:
-      if st.button("Finish & Return"):
-        st.session_state.global_students[st.session_state.current_student][
-            "english"
-        ] = st.session_state.e_score
-        st.success(
-            f"Well done! Total English Score: {st.session_state.e_score}"
-        )
-        st.session_state.e_index = 0
-        st.session_state.e_score = 0
-        st.session_state.current_page = "home"
-        st.rerun()
-
-  if st.button("🏠 Home"):
-    st.session_state.e_index = 0
-    st.session_state.e_score = 0
-    st.session_state.current_page = "home"
-    st.rerun()
-
-
-# ==========================================
-# 7. TEACHER DASHBOARD (INTERACTIVE TABLE & EXCEL REPORT DOWNLOAD)
-# ==========================================
-def teacher_dashboard_screen():
-  st.subheader("🎓 Gabaasa Barsiisaa - Kutaa Barsiisaa (Teacher Report & Table)")
-  st.markdown(
-      "**Gosa Barnoota Sadii (Afaan Oromoo, Herrega, Ingliffaa) Qabxii"
-      " Barattootaa, Parsantii (%) fi Cuunfaa Gamaaggamaa**"
-  )
-
-  students = st.session_state.global_students
-  st.write(f"**Baay'inni barattoota galmaa'an:** {len(students)}")
-
-  if not students:
-    st.info(
-        "Ammaaf barataan galmaa'e hin jiru. Barataan yeroo appii fayyadamu asitti"
-        " dhiyaata."
-    )
-  else:
-    max_subject_score = 20
-    max_total_score = 60
-
-    table_data = []
-    csv_data = (
-        "Maqaa Barataa,Kutaa,Afaan"
-        " Oromoo,Herrega,Ingliffaa,Waliigala,Parsantii (%),Cuunfaa"
-        " Gabaasa\n"
-    )
-
-    for name, data in students.items():
-      ao = data["afaanOromoo"]
-      math = data["math"]
-      eng = data["english"]
-      total = ao + math + eng
-      percentage = (total / max_total_score) * 100
-
-      def get_subject_summary(score):
-        pct = (score / max_subject_score) * 100
-        if pct == 100:
-          return "Sirriitti deebise"
-        elif pct >= 75:
-          return "Foyyee qaba"
-        else:
-          return "Irra haa deebi'u"
-
-      ao_summary = get_subject_summary(ao)
-      math_summary = get_subject_summary(math)
-      eng_summary = get_subject_summary(eng)
-
-      summary_text = (
-          f"Afaan Oromoo: {ao_summary} | Herrega: {math_summary} | Ingliffaa:"
-          f" {eng_summary}"
-      )
-
-      table_data.append({
-          "Maqaa Barataa": name,
-          "Kutaa": data["grade"],
-          "Afaan Oromoo": f"{ao}/20",
-          "Herrega": f"{math}/20",
-          "Ingliffaa": f"{eng}/20",
-          "Waliigala": f"{total}/60",
-          "Parsantii (%)": f"{percentage:.1f}%",
-          "Cuunfaa Gabaasa": summary_text,
-      })
-
-      csv_data += (
-          f"{name},{data['grade']},{ao},{math},{eng},{total},{percentage:.1f}%,\\\"{summary_text}\\\"\n"
-      )
-
-    st.dataframe(table_data, use_container_width=True)
-
-    st.download_button(
-        label="📥 Download Excel-Compatible Report (CSV)",
-        data=csv_data,
-        file_name="HiikaWay_Student_Report.csv",
-        mime="text/csv",
-        help="Gabaasa kana Excel irratti banuun print gochuun ni danda'ama",
-    )
-
-  st.write("")
-  if st.button("⬅️ Gara Furtuu Hojii (Role Selection) Deebi'i"):
-    st.session_state.current_page = "role_selection"
-    st.rerun()
-
-
-# ROUTE CONTROLLER
-if st.session_state.current_page == "role_selection":
-  role_selection_screen()
-elif st.session_state.current_page == "name_input":
-  name_input_screen()
-elif st.session_state.current_page == "home":
-  home_screen()
-elif st.session_state.current_page == "afaan_oromoo":
-  afaan_oromoo_screen()
-elif st.session_state.current_page == "math":
-  math_screen()
-elif st.session_state.current_page == "english":
-  english_screen()
-elif st.session_state.current_page == "teacher_dashboard":
-  teacher_dashboard_screen()
+# ============ GENERATE QUESTIONS ============
+def generate_questions():
+    questions = []
+    
+    # Afaan Oromoo Questions (20)
+    oromo_questions = [
+        {
+            "question": "Afaan Oromoon 'Water' maal jedhu?",
+            "options": ["A) Bishaan", "B) Biyya", "C) Bosona", "D) Arba"],
+            "answer": "A",
+            "category": "Afaan Oromoo",
+            "difficulty": "Salphoo",
+            "image": "💧",
+            "audio": "Bishaan"
+        },
+        {
+            "question": "Qubee 'A' jedhu jecha kamii eegala?",
+            "options": ["A) Afaan", "B) Bishaan", "C) Cabbana", "D) Daraan"],
+            "answer": "A",
+            "category": "Afaan Oromoo",
+            "difficulty": "Salphoo",
+            "image": "🔤",
+            "audio": "Afaan"
+        },
+        {
+            "question": "'Arba' jechuun maal?",
+            "options": ["A) Elephant", "B) Lion", "C) Tiger", "D) Zebra"],
+            "answer": "A",
+            "category": "Afaan Oromoo",
+            "difficulty": "Giddugaleessa",
+            "image": "🐘",
+            "audio": "Arba"
+        },
+        {
+            "question": "Afaan Oromoon 'Good morning' maal jedhu?",
+            "options": ["A) Akkam", "B) Baga nagaan", "C) Galatoomaa", "D) Nagaatti"],
+            "answer": "B",
+            "category": "Afaan Oromoo",
+            "difficulty": "Giddugaleessa",
+            "image": "🌅",
+            "audio": "Baga nagaan"
+        },
+        {
+            "question": "'Biyya' jechuun maal?",
+            "options": ["A) Water", "B) Country", "C) Tree", "D) House"],
+            "answer": "B",
+            "category": "Afaan Oromoo",
+            "difficulty": "Salphoo",
+            "image": "🌍",
+            "audio": "Biyya"
+        },
+        {
+            "question": "Qubee 'C' jedhu jecha kamii eegala?",
+            "options": ["A) Cabbana", "B) Bishaan", "C) Afaan", "D) Daraan"],
+            "answer": "A",
+            "category": "Afaan Oromoo",
+            "difficulty": "Salphoo",
+            "image": "❄️",
+            "audio": "Cabbana"
+        }
+    ]
+    
+    # English Questions (20)
+    english_questions = [
+        {
+            "question": "What is the English word for 'Bishaan'?",
+            "options": ["A) Water", "B) Fire", "C) Air", "D) Earth"],
+            "answer": "A",
+            "category": "Afaan Ingiliffaa",
+            "difficulty": "Salphoo",
+            "image": "💧",
+            "audio": "Water"
+        },
+        {
+            "question": "What is the English word for 'Arba'?",
+            "options": ["A) Elephant", "B) Lion", "C) Tiger", "D) Giraffe"],
+            "answer": "A",
+            "category": "Afaan Ingiliffaa",
+            "difficulty": "Giddugaleessa",
+            "image": "🐘",
+            "audio": "Elephant"
+        },
+        {
+            "question": "What is the English word for 'Biyya'?",
+            "options": ["A) Water", "B) Country", "C) Tree", "D) House"],
+            "answer": "B",
+            "category": "Afaan Ingiliffaa",
+            "difficulty": "Salphoo",
+            "image": "🌍",
+            "audio": "Country"
+        },
+        {
+            "question": "How do you say 'Good morning' in English?",
+            "options": ["A) Hello", "B) Good morning", "C) Good night", "D) Good evening"],
+            "answer": "B",
+            "category": "Afaan Ingiliffaa",
+            "difficulty": "Salphoo",
+            "image": "🌅",
+            "audio": "Good morning"
+        },
+        {
+            "question": "What is the English word for 'Cabbana'?",
+            "options": ["A) Ice", "B) Water", "C) Fire", "D) Wind"],
+            "answer": "A",
+            "category": "Afaan Ingiliffaa",
+            "difficulty": "Salphoo",
+            "image": "❄️",
+            "audio": "Ice"
+        },
+        {
+            "question": "What is the English word for 'Bosona'?",
+            "options": ["A) Forest", "B) Desert", "C) Ocean", "D) Mountain"],
+            "answer": "A",
+            "category": "Afaan Ingiliffaa",
+            "difficulty": "Giddugaleessa",
+            "image": "🌲",
+            "audio": "Forest"
+        }
+    ]
+    
+    # Math Questions (20)
+    math_questions = [
+        {
+            "question": "15 + 12 = ?",
+            "options": ["A) 25", "B) 27", "C) 30", "D) 22"],
+            "answer": "B",
+            "category": "Herregaa",
+            "difficulty": "Salphoo",
+            "image": "➕",
+            "audio": "15 plus 12 equals 27"
+        },
+        {
+            "question": "45 - 20 = ?",
+            "options": ["A) 15", "B) 25", "C) 20", "D) 35"],
+            "answer": "B",
+            "category": "Herregaa",
+            "difficulty": "Salphoo",
+            "image": "➖",
+            "audio": "45 minus 20 equals 25"
+        },
+        {
+            "question": "6 × 7 = ?",
+            "options": ["A) 36", "B) 42", "C) 48", "D) 54"],
+            "answer": "B",
+            "category": "Herregaa",
+            "difficulty": "Giddugaleessa",
+            "image": "✖️",
+            "audio": "6 times 7 equals 42"
+        },
+        {
+            "question": "72 ÷ 8 = ?",
+            "options": ["A) 8", "B) 9", "C) 7", "D) 10"],
+            "answer": "B",
+            "category": "Herregaa",
+            "difficulty": "Giddugaleessa",
+            "image": "➗",
+            "audio": "72 divided by 8 equals 9"
+        },
+        {
+            "question": "30 + 15 = ?",
+            "options": ["A) 40", "B) 45", "C) 50", "D) 55"],
+            "answer": "B",
+            "category": "Herregaa",
+            "difficulty": "Salphoo",
+            "image": "➕",
+            "audio": "30 plus 15 equals 45"
+        },
+        {
+            "question": "100 - 35 = ?",
+            "options": ["A) 55", "B) 65", "C) 75", "D) 85"],
+            "answer": "B",
+            "category": "Herregaa",
+            "difficulty": "Giddugaleessa",
+            "image": "➖",
+            "audio": "100 minus 35 equals 65"
+        }
+    ]
+    
+    # Combine and shuffle all questions
+    all_questions = oromo_questions + english_questions + math_questions
+    random.shuffle(all_questions)
+    
+    # Add attempts tracking
+    for q in all_
